@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/gofrs/flock"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/promlog"
@@ -37,6 +38,7 @@ const (
 var (
 	runOnce                = kingpin.Flag("exporter.runonce", "Run exporter once and write metrics to file").Default("false").Bool()
 	output                 = kingpin.Flag("exporter.output", "Output file to write metrics to when using runonce").Default("").String()
+	lockFile               = kingpin.Flag("exporter.lockfile", "Lock file path").Default("/tmp/infiniband_exporter.lock").String()
 	listenAddress          = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9315").String()
 	disableExporterMetrics = kingpin.Flag("web.disable-exporter-metrics", "Exclude metrics about the exporter (promhttp_*, process_*, go_*)").Default("false").Bool()
 )
@@ -79,6 +81,15 @@ func metricsHandler(logger log.Logger) http.HandlerFunc {
 }
 
 func writeMetrics(logger log.Logger) error {
+	fileLock := flock.New(*lockFile)
+	locked, err := fileLock.TryLock()
+	if err != nil {
+		level.Error(logger).Log("msg", "Unable to obtain lock on lock file", "lockfile", *lockFile)
+		return err
+	}
+	if !locked {
+		return fmt.Errorf("Lock file %s is locked", *lockFile)
+	}
 	tmp, err := os.CreateTemp(filepath.Dir(*output), filepath.Base(*output))
 	if err != nil {
 		level.Error(logger).Log("msg", "Unable to create temporary file", "err", err)
