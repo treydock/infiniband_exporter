@@ -27,6 +27,7 @@ import (
 )
 
 var (
+	perfqueryPath    = kingpin.Flag("perfquery.path", "Path to perfquery").Default("perfquery").String()
 	perfqueryTimeout = kingpin.Flag("perfquery.timeout", "Timeout for perfquery execution").Default("5s").Duration()
 	maxConcurrent    = kingpin.Flag("perfquery.max-concurrent", "Max number of concurrent perfquery executions").Default("1").Int()
 	PerfqueryExec    = perfquery
@@ -131,9 +132,9 @@ func perfqueryArgs(guid string, port string, extraArgs []string) (string, []stri
 	var args []string
 	if *useSudo {
 		command = "sudo"
-		args = []string{"perfquery"}
+		args = []string{*perfqueryPath}
 	} else {
-		command = "perfquery"
+		command = *perfqueryPath
 	}
 	args = append(args, extraArgs...)
 	args = append(args, []string{"-G", guid}...)
