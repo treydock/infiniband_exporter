@@ -81,15 +81,6 @@ func metricsHandler(logger log.Logger) http.HandlerFunc {
 }
 
 func writeMetrics(logger log.Logger) error {
-	fileLock := flock.New(*lockFile)
-	locked, err := fileLock.TryLock()
-	if err != nil {
-		level.Error(logger).Log("msg", "Unable to obtain lock on lock file", "lockfile", *lockFile)
-		return err
-	}
-	if !locked {
-		return fmt.Errorf("Lock file %s is locked", *lockFile)
-	}
 	tmp, err := os.CreateTemp(filepath.Dir(*output), filepath.Base(*output))
 	if err != nil {
 		level.Error(logger).Log("msg", "Unable to create temporary file", "err", err)
@@ -115,7 +106,16 @@ func run(logger log.Logger) error {
 		if *output == "" {
 			return fmt.Errorf("Must specify output path when using runonce mode")
 		}
-		err := writeMetrics(logger)
+		fileLock := flock.New(*lockFile)
+		unlocked, err := fileLock.TryLock()
+		if err != nil {
+			level.Error(logger).Log("msg", "Unable to obtain lock on lock file", "lockfile", *lockFile)
+			return err
+		}
+		if !unlocked {
+			return fmt.Errorf("Lock file %s is locked", *lockFile)
+		}
+		err = writeMetrics(logger)
 		if err != nil {
 			return err
 		}
