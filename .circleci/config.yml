@@ -28,7 +28,7 @@ jobs:
     steps:
     - prometheus/setup_build_environment:
         docker_version: 19.03.8
-    - run: make docker
+    - run: make -j3 docker
 workflows:
   version: 2
   infiniband_exporter:
