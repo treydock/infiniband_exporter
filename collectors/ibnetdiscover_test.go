@@ -262,29 +262,29 @@ func TestIbnetdiscoverArgs(t *testing.T) {
 	falseValue := false
 	nameMap := "/opt/foo"
 	command, args := ibnetdiscoverArgs()
-	if command != "sudo" {
-		t.Errorf("Unexpected command, got: %s", command)
-	}
-	if !reflect.DeepEqual(args, []string{"ibnetdiscover", "--ports"}) {
-		t.Errorf("Unexpected args, got: %v", args)
-	}
-	useSudo = &falseValue
-	command, args = ibnetdiscoverArgs()
 	if command != "ibnetdiscover" {
 		t.Errorf("Unexpected command, got: %s", command)
 	}
 	if !reflect.DeepEqual(args, []string{"--ports"}) {
 		t.Errorf("Unexpected args, got: %v", args)
 	}
-	nodeNameMap = &nameMap
+	useSudo = &trueValue
 	command, args = ibnetdiscoverArgs()
-	if command != "ibnetdiscover" {
+	if command != "sudo" {
 		t.Errorf("Unexpected command, got: %s", command)
 	}
-	if !reflect.DeepEqual(args, []string{"--ports", "--node-name-map", "/opt/foo"}) {
+	if !reflect.DeepEqual(args, []string{"ibnetdiscover", "--ports"}) {
 		t.Errorf("Unexpected args, got: %v", args)
 	}
-	useSudo = &trueValue
+	nodeNameMap = &nameMap
+	command, args = ibnetdiscoverArgs()
+	if command != "sudo" {
+		t.Errorf("Unexpected command, got: %s", command)
+	}
+	if !reflect.DeepEqual(args, []string{"ibnetdiscover", "--ports", "--node-name-map", "/opt/foo"}) {
+		t.Errorf("Unexpected args, got: %v", args)
+	}
+	useSudo = &falseValue
 }
 
 func TestIbnetdiscover(t *testing.T) {

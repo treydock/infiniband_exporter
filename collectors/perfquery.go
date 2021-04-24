@@ -27,8 +27,8 @@ import (
 )
 
 var (
-	perfqueryTimeout = kingpin.Flag("collector.perfquery.timeout", "Timeout for perfquery execution").Default("5s").Duration()
-	maxConcurrent    = kingpin.Flag("collector.perfquery.max-concurrent", "Max number of concurrent perfquery executions").Default("1").Int()
+	perfqueryTimeout = kingpin.Flag("perfquery.timeout", "Timeout for perfquery execution").Default("5s").Duration()
+	maxConcurrent    = kingpin.Flag("perfquery.max-concurrent", "Max number of concurrent perfquery executions").Default("1").Int()
 	PerfqueryExec    = perfquery
 )
 

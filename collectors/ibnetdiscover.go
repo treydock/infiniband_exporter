@@ -32,9 +32,9 @@ import (
 
 var (
 	IbnetdiscoverExec    = ibnetdiscover
-	ibnetdiscoverPath    = kingpin.Flag("collector.ibnetdiscover.path", "Path to ibnetdiscover").Default("ibnetdiscover").String()
-	nodeNameMap          = kingpin.Flag("collector.ibnetdiscover.node-name-map", "Path to node name map file").Default("").String()
-	ibnetdiscoverTimeout = kingpin.Flag("collector.ibnetdiscover.timeout", "Timeout for ibnetdiscover execution").Default("20s").Duration()
+	ibnetdiscoverPath    = kingpin.Flag("ibnetdiscover.path", "Path to ibnetdiscover").Default("ibnetdiscover").String()
+	nodeNameMap          = kingpin.Flag("ibnetdiscover.node-name-map", "Path to node name map file").Default("").String()
+	ibnetdiscoverTimeout = kingpin.Flag("ibnetdiscover.timeout", "Timeout for ibnetdiscover execution").Default("20s").Duration()
 	rates                = map[string]float64{
 		"SDR":   2,
 		"DDR":   4,

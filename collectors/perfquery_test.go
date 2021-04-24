@@ -227,23 +227,23 @@ func TestPerfqueryArgs(t *testing.T) {
 	trueValue := true
 	falseValue := false
 	command, args := perfqueryArgs("0x00", "1", []string{"-l", "-x"})
-	if command != "sudo" {
-		t.Errorf("Unexpected command, got: %s", command)
-	}
-	expectedArgs := []string{"perfquery", "-l", "-x", "-G", "0x00", "1"}
-	if !reflect.DeepEqual(args, expectedArgs) {
-		t.Errorf("Unexpected args\nExpected\n%v\nGot\n%v", expectedArgs, args)
-	}
-	useSudo = &falseValue
-	command, args = perfqueryArgs("0x00", "1", []string{"-l", "-x"})
 	if command != "perfquery" {
 		t.Errorf("Unexpected command, got: %s", command)
 	}
-	expectedArgs = []string{"-l", "-x", "-G", "0x00", "1"}
+	expectedArgs := []string{"-l", "-x", "-G", "0x00", "1"}
 	if !reflect.DeepEqual(args, expectedArgs) {
 		t.Errorf("Unexpected args\nExpected\n%v\nGot\n%v", expectedArgs, args)
 	}
 	useSudo = &trueValue
+	command, args = perfqueryArgs("0x00", "1", []string{"-l", "-x"})
+	if command != "sudo" {
+		t.Errorf("Unexpected command, got: %s", command)
+	}
+	expectedArgs = []string{"perfquery", "-l", "-x", "-G", "0x00", "1"}
+	if !reflect.DeepEqual(args, expectedArgs) {
+		t.Errorf("Unexpected args\nExpected\n%v\nGot\n%v", expectedArgs, args)
+	}
+	useSudo = &falseValue
 }
 
 func TestPerfquery(t *testing.T) {
