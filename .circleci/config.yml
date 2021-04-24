@@ -1,0 +1,73 @@
+---
+version: 2.1
+
+orbs:
+  prometheus: prometheus/prometheus@0.11.0
+  codecov: codecov/codecov@1.0.5
+
+executors:
+  # Whenever the Go version is updated here, .promu.yml should
+  # also be updated.
+  golang:
+    docker:
+    - image: circleci/golang:1.16
+
+jobs:
+  test:
+    executor: golang
+    steps:
+    - prometheus/setup_environment
+    - run: make
+    - run: make coverage
+    - codecov/upload:
+        file: coverage.txt
+    - prometheus/store_artifact:
+        file: infiniband_exporter
+  docker-build:
+    executor: golang
+    steps:
+    - prometheus/setup_build_environment:
+        docker_version: 19.03.8
+    - run: make -j3 docker
+workflows:
+  version: 2
+  infiniband_exporter:
+    jobs:
+    - test:
+        filters:
+          tags:
+            only: /.*/
+    - prometheus/build:
+        name: build
+        filters:
+          tags:
+            only: /.*/
+    - docker-build:
+        name: docker-build
+        requires:
+        - build
+        filters:
+          tags:
+            only: /.*/
+    - prometheus/publish_main:
+        context: org-context
+        docker_hub_organization: treydock
+        quay_io_organization: treydock
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            only: main
+    - prometheus/publish_release:
+        context: org-context
+        docker_hub_organization: treydock
+        quay_io_organization: treydock
+        requires:
+        - test
+        - build
+        filters:
+          tags:
+            only: /^v([0-9]).*/
+          branches:
+            ignore: /.*/

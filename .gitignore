@@ -1,0 +1,6 @@
+/.tarballs
+/.build
+/infiniband_exporter
+/c.out
+/coverage.html
+/coverage.txt
