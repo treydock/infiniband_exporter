@@ -112,14 +112,9 @@ func (ib *IBNetDiscover) collect() (*[]InfinibandDevice, *[]InfinibandDevice, er
 	return switches, hcas, err
 }
 
-// CA  1500  1 0xec0d9a0300ca29cd 4x EDR - SW  1498  1 0xb8599f03008adc90 ( 'ibmems1 HCA-2' - 'ib-i6l2s02' )
-// SW  1540 36 0x7cfe900300b07440 4x ???                                    'ib-i2l1s07'
-// SW  1540 28 0x7cfe900300b07440 4x EDR - CA  1427  1 0x7cfe9003003b45fe ( 'ib-i2l1s07' - 'o0817 HCA-1' )
 func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]InfinibandDevice, error) {
 	var switches, hcas []InfinibandDevice
 	devices := make(map[string]InfinibandDevice)
-	/*switchUplinks := make(map[string]InfinibandUplink)
-	hcaUplinks := make(map[string]InfinibandUplink)*/
 	lines := strings.Split(out, "\n")
 	for _, line := range lines {
 		items := strings.Fields(line)
@@ -139,9 +134,6 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			device = val
 		} else {
 			device.Uplinks = make(map[string]InfinibandUplink)
-		}
-		if val, ok := device.Uplinks[portNumber]; ok {
-			uplink = val
 		}
 		device.Type = items[0]
 		device.LID = items[1]
@@ -212,6 +204,22 @@ func parseNames(line string) (string, string, error) {
 		uplinkName = strings.Split(uplinkName, " ")[0]
 	}
 	return portName, uplinkName, nil
+}
+
+func getDeviceGUIDs(devices map[string]InfinibandDevice) []string {
+	keys := make([]string, 0, len(devices))
+	for key := range devices {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+func getDevicePorts(uplinks map[string]InfinibandUplink) []string {
+	keys := make([]string, 0, len(uplinks))
+	for key := range uplinks {
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 func ibnetdiscoverArgs() (string, []string) {

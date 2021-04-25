@@ -280,12 +280,8 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 				<-limit
 				return
 			}
-			deviceCounters, err := perfqueryParse(device, extendedOut, s.logger)
-			if err != nil {
-				errors++
-				<-limit
-				return
-			}
+			deviceCounters, errs := perfqueryParse(device, extendedOut, s.logger)
+			errors = errors + errs
 			level.Debug(s.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
 			countersLock.Lock()
 			counters = append(counters, deviceCounters...)
@@ -304,11 +300,8 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 						errors++
 						continue
 					}
-					rcvErrCounters, err := perfqueryParse(device, rcvErrOut, s.logger)
-					if err != nil {
-						errors++
-						continue
-					}
+					rcvErrCounters, errs := perfqueryParse(device, rcvErrOut, s.logger)
+					errors = errors + errs
 					countersLock.Lock()
 					counters = append(counters, rcvErrCounters...)
 					countersLock.Unlock()

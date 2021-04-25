@@ -40,19 +40,3 @@ var (
 		"Number of timeouts that occurred during collection",
 		[]string{"collector"}, nil)
 )
-
-func getDeviceGUIDs(devices map[string]InfinibandDevice) []string {
-	keys := make([]string, 0, len(devices))
-	for key := range devices {
-		keys = append(keys, key)
-	}
-	return keys
-}
-
-func getDevicePorts(uplinks map[string]InfinibandUplink) []string {
-	keys := make([]string, 0, len(uplinks))
-	for key := range uplinks {
-		keys = append(keys, key)
-	}
-	return keys
-}

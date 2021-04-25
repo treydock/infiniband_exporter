@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -38,6 +39,10 @@ SW  1719  1 0x7cfe9003009ce5b0 4x EDR - SW  1516  1 0x7cfe900300b07320 ( 'ib-i1l
 SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )
 SW  2052 37 0x506b4b03005c2740 4x ???                                    'ib-i4l1s01'
 `
+	ibnetdiscoverBadRate = `CA   134  1 0x7cfe9003003b4bde 4x ZDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
+SW  1719 10 0x7cfe9003009ce5b0 4x ZDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )`
+	ibnetdiscoverBadName = `CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( )
+SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( )`
 )
 
 func TestIbnetdiscoverCollector(t *testing.T) {
@@ -178,6 +183,26 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 }
 
+func TestIbnetdiscoverParseErrors(t *testing.T) {
+	tests := []struct {
+		Input         string
+		ExpectedError string
+	}{
+		{Input: ibnetdiscoverBadRate, ExpectedError: "Unknown rate ZDR"},
+		{Input: ibnetdiscoverBadName, ExpectedError: "Unable to extract names using regexp"},
+	}
+	for i, test := range tests {
+		_, _, err := ibnetdiscoverParse(test.Input, log.NewNopLogger())
+		if err == nil {
+			t.Errorf("Expected an error in case %d", i)
+			continue
+		}
+		if err.Error() != test.ExpectedError {
+			t.Errorf("Unexpected error in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedError, err.Error())
+		}
+	}
+}
+
 func TestParseRate(t *testing.T) {
 	tests := []struct {
 		Width        string
@@ -238,6 +263,10 @@ func TestParseNames(t *testing.T) {
 			ExpectedPortName: "o0001", ExpectedUplinkName: "ib-i1l1s01"},
 		{Line: "SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )",
 			ExpectedPortName: "ib-i4l1s01", ExpectedUplinkName: "p0001"},
+		{Line: "SW  1540 15 0x7cfe900300b07440 4x EDR - CA  1428  1 0x7cfe9003008dd6f8 ( 'SwitchIB Mellanox Technologies' - 'o0811 HCA-1' )",
+			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "o0811"},
+		{Line: "SW  1540  7 0x7cfe900300b07440 4x EDR - SW  1495 36 0x7cfe900300a1db20 ( 'SwitchIB Mellanox Technologies' - 'SwitchIB Mellanox Technologies' )",
+			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "SwitchIB Mellanox Technologies"},
 	}
 	for i, test := range tests {
 		portName, uplinkName, err := parseNames(test.Line)
@@ -251,6 +280,40 @@ func TestParseNames(t *testing.T) {
 		if uplinkName != test.ExpectedUplinkName {
 			t.Errorf("Unexpected uplink name in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedUplinkName, uplinkName)
 		}
+	}
+}
+
+func TestParseNamesErrors(t *testing.T) {
+	tests := []struct {
+		Line          string
+		ExpectedError string
+	}{
+		{Line: "SW  1540 10 0x7cfe900300b07440 4x EDR - CA    16  1 0x7cfe9003003b4b9a ( 'name' )",
+			ExpectedError: "Unable to extract names using regexp"},
+	}
+	for i, test := range tests {
+		_, _, err := parseNames(test.Line)
+		if err == nil {
+			t.Errorf("Expected an error in case %d", i)
+			continue
+		}
+		if err.Error() != test.ExpectedError {
+			t.Errorf("Unexpected error in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedError, err.Error())
+		}
+	}
+}
+
+func TestGetDevicePorts(t *testing.T) {
+	uplinks := map[string]InfinibandUplink{
+		"10": InfinibandUplink{Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
+		"11": InfinibandUplink{Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002"},
+	}
+	expected := []string{"10", "11"}
+	ports := getDevicePorts(uplinks)
+	sort.Strings(expected)
+	sort.Strings(ports)
+	if !reflect.DeepEqual(ports, expected) {
+		t.Errorf("Unexpected value for returned ports:\nExpected: %v\nGot: %v", expected, ports)
 	}
 }
 

@@ -27,7 +27,8 @@ import (
 )
 
 var (
-	perfqueryOut = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
+	perfqueryTestDevice = InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "test"}
+	perfqueryOut        = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
 PortSelect:......................1
 CounterSelect:...................0x0000
 PortXmitData:....................36298026860928
@@ -90,13 +91,19 @@ PortDLIDMappingErrors:...........0
 PortVLMappingErrors:.............0
 PortLoopingErrors:...............0
 `
+	perfqueryOutErr = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
+PortSelect:......................1
+CounterSelect:...................0x0000
+PortXmitData:....................foo
+PortRcvData:.....................bar
+PortXmitPkts:....................101733204203
+PortRcvPkts:.....................32262508468`
 )
 
 func TestPerfqueryParse(t *testing.T) {
-	device := InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "test"}
 	expected := []PerfQueryCounters{
 		PerfQueryCounters{
-			device:                       device,
+			device:                       perfqueryTestDevice,
 			PortSelect:                   "1",
 			PortXmitData:                 36298026860928,
 			PortRcvData:                  12279028775751,
@@ -128,7 +135,7 @@ func TestPerfqueryParse(t *testing.T) {
 			PortLoopingErrors:            math.NaN(),
 		},
 		PerfQueryCounters{
-			device:                       device,
+			device:                       perfqueryTestDevice,
 			PortSelect:                   "2",
 			PortXmitData:                 26006570014026,
 			PortRcvData:                  39078804993378,
@@ -160,11 +167,9 @@ func TestPerfqueryParse(t *testing.T) {
 			PortLoopingErrors:            math.NaN(),
 		},
 	}
-	w := log.NewSyncWriter(os.Stderr)
-	logger := log.NewLogfmtLogger(w)
-	counters, err := perfqueryParse(device, perfqueryOut, logger)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	counters, errors := perfqueryParse(perfqueryTestDevice, perfqueryOut, log.NewNopLogger())
+	if errors != 0 {
+		t.Errorf("Unexpected errors")
 		return
 	}
 	if reflect.DeepEqual(expected, counters) {
@@ -173,10 +178,9 @@ func TestPerfqueryParse(t *testing.T) {
 }
 
 func TestPerfqueryParseRcvErrorDetails(t *testing.T) {
-	device := InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "test"}
 	expected := []PerfQueryCounters{
 		PerfQueryCounters{
-			device:                       device,
+			device:                       perfqueryTestDevice,
 			PortSelect:                   "1",
 			PortXmitData:                 math.NaN(),
 			PortRcvData:                  math.NaN(),
@@ -208,15 +212,30 @@ func TestPerfqueryParseRcvErrorDetails(t *testing.T) {
 			PortLoopingErrors:            0,
 		},
 	}
-	w := log.NewSyncWriter(os.Stderr)
-	logger := log.NewLogfmtLogger(w)
-	counters, err := perfqueryParse(device, perfqueryOutRcvErrors, logger)
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err.Error())
+	counters, errors := perfqueryParse(perfqueryTestDevice, perfqueryOutRcvErrors, log.NewNopLogger())
+	if errors != 0 {
+		t.Errorf("Unexpected errors")
 		return
 	}
 	if reflect.DeepEqual(expected, counters) {
 		t.Errorf("Unexpected value\nExpected:\n%v\nGot:\n%v", expected, counters)
+	}
+}
+
+func TestPerfqueryParseErrors(t *testing.T) {
+	tests := []struct {
+		Input          string
+		ExpectedErrors float64
+	}{
+		{Input: perfqueryOutErr, ExpectedErrors: 2},
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	for i, test := range tests {
+		_, errors := perfqueryParse(perfqueryTestDevice, test.Input, logger)
+		if errors != test.ExpectedErrors {
+			t.Errorf("Unexpected error in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedErrors, errors)
+		}
 	}
 }
 
