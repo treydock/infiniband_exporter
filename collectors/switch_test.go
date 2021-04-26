@@ -14,8 +14,6 @@
 package collectors
 
 import (
-	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -29,130 +27,13 @@ var (
 		InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 		InfinibandDevice{GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
 	}
-	perfqueryOutSwitch1 = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................36298026860928
-PortRcvData:.....................12279028775751
-PortXmitPkts:....................101733204203
-PortRcvPkts:.....................32262508468
-PortUnicastXmitPkts:.............101708165289
-PortUnicastRcvPkts:..............26677661727
-PortMulticastXmitPkts:...........25038914
-PortMulticastRcvPkts:............5584846741
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................22730501
-QP1Dropped:......................0
-# Port extended counters: Lid 1719 port 2 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................2
-CounterSelect:...................0x0000
-PortXmitData:....................26006570014026
-PortRcvData:.....................39078804993378
-PortXmitPkts:....................122978948297
-PortRcvPkts:.....................93660802641
-PortUnicastXmitPkts:.............122978948297
-PortUnicastRcvPkts:..............93660802641
-PortMulticastXmitPkts:...........0
-PortMulticastRcvPkts:............0
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................36510964
-QP1Dropped:......................0
-`
-	perfqueryOutSwitch2 = `# Port extended counters: Lid 2052 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................178791657177235
-PortRcvData:.....................178762341961629
-PortXmitPkts:....................393094651266
-PortRcvPkts:.....................387654829341
-PortUnicastXmitPkts:.............387471005571
-PortUnicastRcvPkts:..............387648134400
-PortMulticastXmitPkts:...........5623645694
-PortMulticastRcvPkts:............6694940
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............1
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........7
-PortXmitDiscards:................20046
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................41864608
-QP1Dropped:......................0
-`
-	perfqueryRcvErrorSwitch1Port1 = `# PortRcvErrorDetails counters: Lid 1719 port 1
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0
-`
-	perfqueryRcvErrorSwitch1Port2 = `# PortRcvErrorDetails counters: Lid 1719 port 2
-PortSelect:......................2
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0
-`
-	perfqueryRcvErrorSwitch2Port1 = `# PortRcvErrorDetails counters: Lid 2052 port 1
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0`
 )
 
 func TestSwitchCollector(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if guid == "0x7cfe9003009ce5b0" {
-			return perfqueryOutSwitch1, nil
-		} else if guid == "0x506b4b03005c2740" {
-			return perfqueryOutSwitch2, nil
-		} else {
-			return "", nil
-		}
-	}
+	SetPerfqueryExecs(t, false, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -300,21 +181,7 @@ func TestSwitchCollectorFull(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.rcv-err-details"}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if len(extraArgs) == 2 && guid == "0x7cfe9003009ce5b0" {
-			return perfqueryOutSwitch1, nil
-		} else if len(extraArgs) == 2 && guid == "0x506b4b03005c2740" {
-			return perfqueryOutSwitch2, nil
-		} else if guid == "0x7cfe9003009ce5b0" && port == "1" {
-			return perfqueryRcvErrorSwitch1Port1, nil
-		} else if guid == "0x7cfe9003009ce5b0" && port == "2" {
-			return perfqueryRcvErrorSwitch1Port2, nil
-		} else if guid == "0x506b4b03005c2740" && port == "1" {
-			return perfqueryRcvErrorSwitch2Port1, nil
-		} else {
-			return "", nil
-		}
-	}
+	SetPerfqueryExecs(t, false, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -494,9 +361,7 @@ func TestSwitchCollectorError(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		return "", fmt.Errorf("Error")
-	}
+	SetPerfqueryExecs(t, true, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -524,9 +389,7 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		return "", context.DeadlineExceeded
-	}
+	SetPerfqueryExecs(t, false, true)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge

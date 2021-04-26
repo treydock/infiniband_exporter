@@ -14,8 +14,6 @@
 package collectors
 
 import (
-	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -29,95 +27,13 @@ var (
 		InfinibandDevice{GUID: "0x7cfe9003003b4bde", Name: "o0001"},
 		InfinibandDevice{GUID: "0x7cfe9003003b4b96", Name: "o0002"},
 	}
-	perfqueryOutHCA1 = `# Port extended counters: Lid 134 port 1 (CapMask: 0x5A00 CapMask2: 0x0000000)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................9049592493976
-PortRcvData:.....................9752484588300
-PortXmitPkts:....................28825338611
-PortRcvPkts:.....................33038722564
-PortUnicastXmitPkts:.............28824617123
-PortUnicastRcvPkts:..............29306563974
-PortMulticastXmitPkts:...........721488
-PortMulticastRcvPkts:............3732158589
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................0
-QP1Dropped:......................0
-`
-	perfqueryOutHCA2 = `# Port extended counters: Lid 133 port 1 (CapMask: 0x5A00 CapMask2: 0x0000000)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................37108676853855
-PortRcvData:.....................37225401952885
-PortXmitPkts:....................96917117320
-PortRcvPkts:.....................100583719365
-PortUnicastXmitPkts:.............96916572630
-PortUnicastRcvPkts:..............96851346228
-PortMulticastXmitPkts:...........544690
-PortMulticastRcvPkts:............3732373137
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................0
-QP1Dropped:......................0
-`
-	perfqueryRcvErrorOutHCA1 = `# PortRcvErrorDetails counters: Lid 134 port 1
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0
-`
-	perfqueryRcvErrorOutHCA2 = `# PortRcvErrorDetails counters: Lid 133 port 1
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0
-`
 )
 
 func TestHCACollector(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if guid == "0x7cfe9003003b4bde" {
-			return perfqueryOutHCA1, nil
-		} else if guid == "0x7cfe9003003b4b96" {
-			return perfqueryOutHCA2, nil
-		} else {
-			return "", nil
-		}
-	}
+	SetPerfqueryExecs(t, false, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -243,19 +159,7 @@ func TestHCACollectorFull(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{"--collector.hca.rcv-err-details"}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if len(extraArgs) == 2 && guid == "0x7cfe9003003b4bde" {
-			return perfqueryOutHCA1, nil
-		} else if len(extraArgs) == 2 && guid == "0x7cfe9003003b4b96" {
-			return perfqueryOutHCA2, nil
-		} else if guid == "0x7cfe9003003b4bde" {
-			return perfqueryRcvErrorOutHCA1, nil
-		} else if guid == "0x7cfe9003003b4b96" {
-			return perfqueryRcvErrorOutHCA2, nil
-		} else {
-			return "", nil
-		}
-	}
+	SetPerfqueryExecs(t, false, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -407,9 +311,7 @@ func TestHCACollectorError(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		return "", fmt.Errorf("Error")
-	}
+	SetPerfqueryExecs(t, true, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -437,9 +339,7 @@ func TestHCACollectorTimeout(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		return "", context.DeadlineExceeded
-	}
+	SetPerfqueryExecs(t, false, true)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge

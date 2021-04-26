@@ -15,6 +15,7 @@ package collectors
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"os"
 	"os/exec"
@@ -28,70 +29,7 @@ import (
 
 var (
 	perfqueryTestDevice = InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "test"}
-	perfqueryOut        = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................36298026860928
-PortRcvData:.....................12279028775751
-PortXmitPkts:....................101733204203
-PortRcvPkts:.....................32262508468
-PortUnicastXmitPkts:.............101708165289
-PortUnicastRcvPkts:..............26677661727
-PortMulticastXmitPkts:...........25038914
-PortMulticastRcvPkts:............5584846741
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................22730501
-QP1Dropped:......................0
-# Port extended counters: Lid 1719 port 2 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................2
-CounterSelect:...................0x0000
-PortXmitData:....................26006570014026
-PortRcvData:.....................39078804993378
-PortXmitPkts:....................122978948297
-PortRcvPkts:.....................93660802641
-PortUnicastXmitPkts:.............122978948297
-PortUnicastRcvPkts:..............93660802641
-PortMulticastXmitPkts:...........0
-PortMulticastRcvPkts:............0
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................36510964
-QP1Dropped:......................0
-`
-	perfqueryOutRcvErrors = `# PortRcvErrorDetails counters: Lid 1432 port 1
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortLocalPhysicalErrors:.........0
-PortMalformedPktErrors:..........0
-PortBufferOverrunErrors:.........0
-PortDLIDMappingErrors:...........0
-PortVLMappingErrors:.............0
-PortLoopingErrors:...............0
-`
-	perfqueryOutErr = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
+	perfqueryOutErr     = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
 PortSelect:......................1
 CounterSelect:...................0x0000
 PortXmitData:....................foo
@@ -167,7 +105,11 @@ func TestPerfqueryParse(t *testing.T) {
 			PortLoopingErrors:            math.NaN(),
 		},
 	}
-	counters, errors := perfqueryParse(perfqueryTestDevice, perfqueryOut, log.NewNopLogger())
+	out, err := ReadFixture("perfquery", perfqueryTestDevice.GUID)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	counters, errors := perfqueryParse(perfqueryTestDevice, out, log.NewNopLogger())
 	if errors != 0 {
 		t.Errorf("Unexpected errors")
 		return
@@ -212,7 +154,11 @@ func TestPerfqueryParseRcvErrorDetails(t *testing.T) {
 			PortLoopingErrors:            0,
 		},
 	}
-	counters, errors := perfqueryParse(perfqueryTestDevice, perfqueryOutRcvErrors, log.NewNopLogger())
+	out, err := ReadFixture("perfquery-rcv-error", fmt.Sprintf("%s-1", perfqueryTestDevice.GUID))
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	counters, errors := perfqueryParse(perfqueryTestDevice, out, log.NewNopLogger())
 	if errors != 0 {
 		t.Errorf("Unexpected errors")
 		return

@@ -31,6 +31,50 @@ var (
 	_, cancel        = context.WithTimeout(context.Background(), 5*time.Second)
 )
 
+func SetIbnetdiscoverExec(t *testing.T, setErr bool, timeout bool) {
+	IbnetdiscoverExec = func(ctx context.Context) (string, error) {
+		if setErr {
+			return "", fmt.Errorf("Error")
+		}
+		if timeout {
+			return "", context.DeadlineExceeded
+		}
+		out, err := ReadFixture("ibnetdiscover", "test")
+		if err != nil {
+			t.Fatal(err.Error())
+			return "", err
+		}
+		return out, nil
+	}
+}
+
+func SetPerfqueryExecs(t *testing.T, setErr bool, timeout bool) {
+	PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
+		if setErr {
+			return "", fmt.Errorf("Error")
+		}
+		if timeout {
+			return "", context.DeadlineExceeded
+		}
+		var out string
+		var err error
+		if len(extraArgs) == 2 {
+			out, err = ReadFixture("perfquery", guid)
+			if err != nil {
+				t.Fatal(err.Error())
+				return "", err
+			}
+		} else {
+			out, err = ReadFixture("perfquery-rcv-error", fmt.Sprintf("%s-%s", guid, port))
+			if err != nil {
+				t.Fatal(err.Error())
+				return "", err
+			}
+		}
+		return out, nil
+	}
+}
+
 func fakeExecCommand(ctx context.Context, command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestExecCommandHelper", "--", command}
 	cs = append(cs, args...)

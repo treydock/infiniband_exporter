@@ -15,7 +15,6 @@ package collectors
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
@@ -30,15 +29,6 @@ import (
 )
 
 var (
-	ibnetdiscoverOut = `CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
-CA   133  1 0x7cfe9003003b4b96 4x EDR - SW  1719 11 0x7cfe9003009ce5b0 ( 'o0002 HCA-1' - 'ib-i1l1s01' )
-CA  1432  1 0x506b4b0300cc02a6 4x EDR - SW  2052 35 0x506b4b03005c2740 ( 'p0001 HCA-1' - 'ib-i4l1s01' )
-SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )
-SW  1719 11 0x7cfe9003009ce5b0 4x EDR - CA   133  1 0x7cfe9003003b4b96 ( 'ib-i1l1s01' - 'o0002 HCA-1' )
-SW  1719  1 0x7cfe9003009ce5b0 4x EDR - SW  1516  1 0x7cfe900300b07320 ( 'ib-i1l1s01' - 'ib-i1l2s01' )
-SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )
-SW  2052 37 0x506b4b03005c2740 4x ???                                    'ib-i4l1s01'
-`
 	ibnetdiscoverBadRate = `CA   134  1 0x7cfe9003003b4bde 4x ZDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
 SW  1719 10 0x7cfe9003009ce5b0 4x ZDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )`
 	ibnetdiscoverBadName = `CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( )
@@ -46,9 +36,7 @@ SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( )`
 )
 
 func TestIbnetdiscoverCollector(t *testing.T) {
-	IbnetdiscoverExec = func(ctx context.Context) (string, error) {
-		return ibnetdiscoverOut, nil
-	}
+	SetIbnetdiscoverExec(t, false, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -72,9 +60,7 @@ func TestIbnetdiscoverCollector(t *testing.T) {
 }
 
 func TestIbnetdiscoverCollectorError(t *testing.T) {
-	IbnetdiscoverExec = func(ctx context.Context) (string, error) {
-		return "", fmt.Errorf("Error")
-	}
+	SetIbnetdiscoverExec(t, true, false)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -98,9 +84,7 @@ func TestIbnetdiscoverCollectorError(t *testing.T) {
 }
 
 func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
-	IbnetdiscoverExec = func(ctx context.Context) (string, error) {
-		return "", context.DeadlineExceeded
-	}
+	SetIbnetdiscoverExec(t, false, true)
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -156,9 +140,13 @@ func TestIbnetdiscoverParse(t *testing.T) {
 			},
 		},
 	}
+	out, err := ReadFixture("ibnetdiscover", "test")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	switches, hcas, err := ibnetdiscoverParse(ibnetdiscoverOut, logger)
+	switches, hcas, err := ibnetdiscoverParse(out, logger)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 		return

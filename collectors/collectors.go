@@ -14,7 +14,11 @@
 package collectors
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -40,3 +44,18 @@ var (
 		"Number of timeouts that occurred during collection",
 		[]string{"collector"}, nil)
 )
+
+func ReadFixture(outputType string, name string) (string, error) {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+	if filepath.Base(dir) != "collectors" {
+		dir = filepath.Join(dir, "collectors")
+	}
+	fixtureDir := filepath.Join(dir, "fixtures", outputType)
+	fixture := filepath.Join(fixtureDir, fmt.Sprintf("%s.out", name))
+	buffer, err := os.ReadFile(fixture)
+	if err != nil {
+		return "", err
+	}
+	return string(buffer), nil
+}

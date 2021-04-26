@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/treydock/infiniband_exporter/collectors"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -33,148 +34,7 @@ const (
 )
 
 var (
-	outputPath          string
-	perfqueryOutSwitch1 = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................36298026860928
-PortRcvData:.....................12279028775751
-PortXmitPkts:....................101733204203
-PortRcvPkts:.....................32262508468
-PortUnicastXmitPkts:.............101708165289
-PortUnicastRcvPkts:..............26677661727
-PortMulticastXmitPkts:...........25038914
-PortMulticastRcvPkts:............5584846741
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................22730501
-QP1Dropped:......................0
-# Port extended counters: Lid 1719 port 2 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................2
-CounterSelect:...................0x0000
-PortXmitData:....................26006570014026
-PortRcvData:.....................39078804993378
-PortXmitPkts:....................122978948297
-PortRcvPkts:.....................93660802641
-PortUnicastXmitPkts:.............122978948297
-PortUnicastRcvPkts:..............93660802641
-PortMulticastXmitPkts:...........0
-PortMulticastRcvPkts:............0
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................36510964
-QP1Dropped:......................0
-`
-	perfqueryOutSwitch2 = `# Port extended counters: Lid 2052 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................178791657177235
-PortRcvData:.....................178762341961629
-PortXmitPkts:....................393094651266
-PortRcvPkts:.....................387654829341
-PortUnicastXmitPkts:.............387471005571
-PortUnicastRcvPkts:..............387648134400
-PortMulticastXmitPkts:...........5623645694
-PortMulticastRcvPkts:............6694940
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............1
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........7
-PortXmitDiscards:................20046
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................41864608
-QP1Dropped:......................0
-`
-	perfqueryOutHCA1 = `# Port extended counters: Lid 134 port 1 (CapMask: 0x5A00 CapMask2: 0x0000000)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................9049592493976
-PortRcvData:.....................9752484588300
-PortXmitPkts:....................28825338611
-PortRcvPkts:.....................33038722564
-PortUnicastXmitPkts:.............28824617123
-PortUnicastRcvPkts:..............29306563974
-PortMulticastXmitPkts:...........721488
-PortMulticastRcvPkts:............3732158589
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................0
-QP1Dropped:......................0
-`
-	perfqueryOutHCA2 = `# Port extended counters: Lid 133 port 1 (CapMask: 0x5A00 CapMask2: 0x0000000)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................37108676853855
-PortRcvData:.....................37225401952885
-PortXmitPkts:....................96917117320
-PortRcvPkts:.....................100583719365
-PortUnicastXmitPkts:.............96916572630
-PortUnicastRcvPkts:..............96851346228
-PortMulticastXmitPkts:...........544690
-PortMulticastRcvPkts:............3732373137
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................0
-QP1Dropped:......................0
-`
-	ibnetdiscoverOut = `CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
-CA   133  1 0x7cfe9003003b4b96 4x EDR - SW  1719 11 0x7cfe9003009ce5b0 ( 'o0002 HCA-1' - 'ib-i1l1s01' )
-SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )
-SW  1719 11 0x7cfe9003009ce5b0 4x EDR - CA   133  1 0x7cfe9003003b4b96 ( 'ib-i1l1s01' - 'o0002 HCA-1' )
-SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )
-SW  2052 37 0x506b4b03005c2740 4x ???                                    'ib-i4l1s01'
-`
+	outputPath     string
 	expectedSwitch = `# HELP infiniband_switch_port_excessive_buffer_overrun_errors_total Infiniband switch port ExcessiveBufferOverrunErrors
 # TYPE infiniband_switch_port_excessive_buffer_overrun_errors_total counter
 infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
@@ -400,21 +260,23 @@ infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0`
 )
 
 func TestMain(m *testing.M) {
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
 	collectors.IbnetdiscoverExec = func(ctx context.Context) (string, error) {
-		return ibnetdiscoverOut, nil
+		out, err := collectors.ReadFixture("ibnetdiscover", "test")
+		if err != nil {
+			level.Error(logger).Log("err", err)
+			os.Exit(1)
+		}
+		return out, nil
 	}
 	collectors.PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if guid == "0x7cfe9003009ce5b0" {
-			return perfqueryOutSwitch1, nil
-		} else if guid == "0x506b4b03005c2740" {
-			return perfqueryOutSwitch2, nil
-		} else if guid == "0x7cfe9003003b4bde" {
-			return perfqueryOutHCA1, nil
-		} else if guid == "0x7cfe9003003b4b96" {
-			return perfqueryOutHCA2, nil
-		} else {
-			return "", nil
+		out, err := collectors.ReadFixture("perfquery", guid)
+		if err != nil {
+			level.Error(logger).Log("err", err)
+			os.Exit(1)
 		}
+		return out, nil
 	}
 	exitVal := m.Run()
 	os.Exit(exitVal)

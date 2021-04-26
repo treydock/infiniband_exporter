@@ -1,0 +1,9 @@
+# PortRcvErrorDetails counters: Lid 2052 port 1
+PortSelect:......................1
+CounterSelect:...................0x0000
+PortLocalPhysicalErrors:.........0
+PortMalformedPktErrors:..........0
+PortBufferOverrunErrors:.........0
+PortDLIDMappingErrors:...........0
+PortVLMappingErrors:.............0
+PortLoopingErrors:...............0
