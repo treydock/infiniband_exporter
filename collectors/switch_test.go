@@ -24,8 +24,18 @@ import (
 
 var (
 	switchDevices = []InfinibandDevice{
-		InfinibandDevice{GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
-		InfinibandDevice{GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
+		InfinibandDevice{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), Name: "ib-i4l1s01",
+			Uplinks: map[string]InfinibandUplink{
+				"35": InfinibandUplink{Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
+			},
+		},
+		InfinibandDevice{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), Name: "ib-i1l1s01",
+			Uplinks: map[string]InfinibandUplink{
+				"1":  InfinibandUplink{Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
+				"10": InfinibandUplink{Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
+				"11": InfinibandUplink{Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002"},
+			},
+		},
 	}
 )
 
@@ -41,123 +51,137 @@ func TestSwitchCollector(t *testing.T) {
 		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
+		# HELP infiniband_switch_info Infiniband switch information
+		# TYPE infiniband_switch_info gauge
+		infiniband_switch_info{guid="0x506b4b03005c2740",lid="2052",switch="ib-i4l1s01"} 1
+		infiniband_switch_info{guid="0x7cfe9003009ce5b0",lid="1719",switch="ib-i1l1s01"} 1
 		# HELP infiniband_switch_port_excessive_buffer_overrun_errors_total Infiniband switch port ExcessiveBufferOverrunErrors
 		# TYPE infiniband_switch_port_excessive_buffer_overrun_errors_total counter
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_link_downed_total Infiniband switch port LinkDownedCounter
 		# TYPE infiniband_switch_port_link_downed_total counter
-		infiniband_switch_port_link_downed_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 1
-		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_link_downed_total{guid="0x506b4b03005c2740",port="1"} 1
+		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_link_error_recovery_total Infiniband switch port LinkErrorRecoveryCounter
 		# TYPE infiniband_switch_port_link_error_recovery_total counter
-		infiniband_switch_port_link_error_recovery_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_local_link_integrity_errors_total Infiniband switch port LocalLinkIntegrityErrors
 		# TYPE infiniband_switch_port_local_link_integrity_errors_total counter
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_multicast_receive_packets_total Infiniband switch port PortMulticastRcvPkts
 		# TYPE infiniband_switch_port_multicast_receive_packets_total counter
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 6694940
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 5584846741
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 6694940
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 5584846741
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_multicast_transmit_packets_total Infiniband switch port PortMulticastXmitPkts
 		# TYPE infiniband_switch_port_multicast_transmit_packets_total counter
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 5623645694
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 25038914
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 5623645694
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 25038914
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_qp1_dropped_total Infiniband switch port QP1Dropped
 		# TYPE infiniband_switch_port_qp1_dropped_total counter
-		infiniband_switch_port_qp1_dropped_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_constraint_errors_total Infiniband switch port PortRcvConstraintErrors
 		# TYPE infiniband_switch_port_receive_constraint_errors_total counter
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_data_bytes_total Infiniband switch port PortRcvData
 		# TYPE infiniband_switch_port_receive_data_bytes_total counter
-		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 178762341961629
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 12279028775751
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 39078804993378
+		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178762341961629
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 12279028775751
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 39078804993378
 		# HELP infiniband_switch_port_receive_errors_total Infiniband switch port PortRcvErrors
 		# TYPE infiniband_switch_port_receive_errors_total counter
-		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_packets_total Infiniband switch port PortRcvPkts
 		# TYPE infiniband_switch_port_receive_packets_total counter
-		infiniband_switch_port_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387654829341
-		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 32262508468
-		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 93660802641
+		infiniband_switch_port_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 387654829341
+		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 32262508468
+		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 93660802641
 		# HELP infiniband_switch_port_receive_remote_physical_errors_total Infiniband switch port PortRcvRemotePhysicalErrors
 		# TYPE infiniband_switch_port_receive_remote_physical_errors_total counter
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_switch_relay_errors_total Infiniband switch port PortRcvSwitchRelayErrors
 		# TYPE infiniband_switch_port_receive_switch_relay_errors_total counter
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 7
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x506b4b03005c2740",port="1"} 7
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_symbol_error_total Infiniband switch port SymbolErrorCounter
 		# TYPE infiniband_switch_port_symbol_error_total counter
-		infiniband_switch_port_symbol_error_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_constraint_errors_total Infiniband switch port PortXmitConstraintErrors
 		# TYPE infiniband_switch_port_transmit_constraint_errors_total counter
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_data_bytes_total Infiniband switch port PortXmitData
 		# TYPE infiniband_switch_port_transmit_data_bytes_total counter
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 178791657177235
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 36298026860928
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 26006570014026
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178791657177235
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 36298026860928
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 26006570014026
 		# HELP infiniband_switch_port_transmit_discards_total Infiniband switch port PortXmitDiscards
 		# TYPE infiniband_switch_port_transmit_discards_total counter
-		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 20046
-		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1"} 20046
+		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_packets_total Infiniband switch port PortXmitPkts
 		# TYPE infiniband_switch_port_transmit_packets_total counter
-		infiniband_switch_port_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 393094651266
-		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 101733204203
-		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 122978948297
+		infiniband_switch_port_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 393094651266
+		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 101733204203
+		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 122978948297
 		# HELP infiniband_switch_port_transmit_wait_total Infiniband switch port PortXmitWait
 		# TYPE infiniband_switch_port_transmit_wait_total counter
-		infiniband_switch_port_transmit_wait_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 41864608
-		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 22730501
-		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 36510964
+		infiniband_switch_port_transmit_wait_total{guid="0x506b4b03005c2740",port="1"} 41864608
+		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="1"} 22730501
+		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="2"} 36510964
 		# HELP infiniband_switch_port_unicast_receive_packets_total Infiniband switch port PortUnicastRcvPkts
 		# TYPE infiniband_switch_port_unicast_receive_packets_total counter
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387648134400
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 26677661727
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 93660802641
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 387648134400
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 26677661727
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 93660802641
 		# HELP infiniband_switch_port_unicast_transmit_packets_total Infiniband switch port PortUnicastXmitPkts
 		# TYPE infiniband_switch_port_unicast_transmit_packets_total counter
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387471005571
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 101708165289
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 122978948297
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 387471005571
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 101708165289
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 122978948297
 		# HELP infiniband_switch_port_vl15_dropped_total Infiniband switch port VL15Dropped
 		# TYPE infiniband_switch_port_vl15_dropped_total counter
-		infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_rate_bytes_per_second Infiniband switch rate
+		# TYPE infiniband_switch_rate_bytes_per_second gauge
+		infiniband_switch_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.25e+10
+		infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
+		# HELP infiniband_switch_uplink_info Infiniband switch uplink information
+		# TYPE infiniband_switch_uplink_info gauge
+		infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01",uplink="ib-i1l2s01",uplink_guid="0x7cfe900300b07320",uplink_lid="1516",uplink_port="1",uplink_type="SW"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1
 	`
 	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 69 {
-		t.Errorf("Unexpected collection count %d, expected 69", val)
+	} else if val != 77 {
+		t.Errorf("Unexpected collection count %d, expected 77", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -172,6 +196,7 @@ func TestSwitchCollector(t *testing.T) {
 		"infiniband_switch_port_transmit_wait_total", "infiniband_switch_port_unicast_receive_packets_total",
 		"infiniband_switch_port_unicast_transmit_packets_total", "infiniband_switch_port_vl15_dropped_total",
 		"infiniband_switch_port_buffer_overrun_errors_total",
+		"infiniband_switch_info", "infiniband_switch_rate_bytes_per_second", "infiniband_switch_uplink_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
@@ -189,153 +214,167 @@ func TestSwitchCollectorFull(t *testing.T) {
 		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
+		# HELP infiniband_switch_info Infiniband switch information
+		# TYPE infiniband_switch_info gauge
+		infiniband_switch_info{guid="0x506b4b03005c2740",lid="2052",switch="ib-i4l1s01"} 1
+		infiniband_switch_info{guid="0x7cfe9003009ce5b0",lid="1719",switch="ib-i1l1s01"} 1
 		# HELP infiniband_switch_port_buffer_overrun_errors_total Infiniband switch port PortBufferOverrunErrors
 		# TYPE infiniband_switch_port_buffer_overrun_errors_total counter
-		infiniband_switch_port_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_dli_mapping_errors_total Infiniband switch port PortDLIDMappingErrors
 		# TYPE infiniband_switch_port_dli_mapping_errors_total counter
-		infiniband_switch_port_dli_mapping_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_excessive_buffer_overrun_errors_total Infiniband switch port ExcessiveBufferOverrunErrors
 		# TYPE infiniband_switch_port_excessive_buffer_overrun_errors_total counter
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_link_downed_total Infiniband switch port LinkDownedCounter
 		# TYPE infiniband_switch_port_link_downed_total counter
-		infiniband_switch_port_link_downed_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 1
-		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_link_downed_total{guid="0x506b4b03005c2740",port="1"} 1
+		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_link_downed_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_link_error_recovery_total Infiniband switch port LinkErrorRecoveryCounter
 		# TYPE infiniband_switch_port_link_error_recovery_total counter
-		infiniband_switch_port_link_error_recovery_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_link_error_recovery_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_local_link_integrity_errors_total Infiniband switch port LocalLinkIntegrityErrors
 		# TYPE infiniband_switch_port_local_link_integrity_errors_total counter
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_local_link_integrity_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_local_physical_errors_total Infiniband switch port PortLocalPhysicalErrors
 		# TYPE infiniband_switch_port_local_physical_errors_total counter
-		infiniband_switch_port_local_physical_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_local_physical_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_looping_errors_total Infiniband switch port PortLoopingErrors
 		# TYPE infiniband_switch_port_looping_errors_total counter
-		infiniband_switch_port_looping_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_looping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_malformed_packet_errors_total Infiniband switch port PortMalformedPktErrors
 		# TYPE infiniband_switch_port_malformed_packet_errors_total counter
-		infiniband_switch_port_malformed_packet_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_multicast_receive_packets_total Infiniband switch port PortMulticastRcvPkts
 		# TYPE infiniband_switch_port_multicast_receive_packets_total counter
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 6694940
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 5584846741
-		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 6694940
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 5584846741
+		infiniband_switch_port_multicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_multicast_transmit_packets_total Infiniband switch port PortMulticastXmitPkts
 		# TYPE infiniband_switch_port_multicast_transmit_packets_total counter
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 5623645694
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 25038914
-		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 5623645694
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 25038914
+		infiniband_switch_port_multicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_qp1_dropped_total Infiniband switch port QP1Dropped
 		# TYPE infiniband_switch_port_qp1_dropped_total counter
-		infiniband_switch_port_qp1_dropped_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_qp1_dropped_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_constraint_errors_total Infiniband switch port PortRcvConstraintErrors
 		# TYPE infiniband_switch_port_receive_constraint_errors_total counter
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_data_bytes_total Infiniband switch port PortRcvData
 		# TYPE infiniband_switch_port_receive_data_bytes_total counter
-		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 178762341961629
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 12279028775751
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 39078804993378
+		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178762341961629
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 12279028775751
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 39078804993378
 		# HELP infiniband_switch_port_receive_errors_total Infiniband switch port PortRcvErrors
 		# TYPE infiniband_switch_port_receive_errors_total counter
-		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_packets_total Infiniband switch port PortRcvPkts
 		# TYPE infiniband_switch_port_receive_packets_total counter
-		infiniband_switch_port_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387654829341
-		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 32262508468
-		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 93660802641
+		infiniband_switch_port_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 387654829341
+		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 32262508468
+		infiniband_switch_port_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 93660802641
 		# HELP infiniband_switch_port_receive_remote_physical_errors_total Infiniband switch port PortRcvRemotePhysicalErrors
 		# TYPE infiniband_switch_port_receive_remote_physical_errors_total counter
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_remote_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_switch_relay_errors_total Infiniband switch port PortRcvSwitchRelayErrors
 		# TYPE infiniband_switch_port_receive_switch_relay_errors_total counter
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 7
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x506b4b03005c2740",port="1"} 7
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_receive_switch_relay_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_symbol_error_total Infiniband switch port SymbolErrorCounter
 		# TYPE infiniband_switch_port_symbol_error_total counter
-		infiniband_switch_port_symbol_error_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_symbol_error_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_constraint_errors_total Infiniband switch port PortXmitConstraintErrors
 		# TYPE infiniband_switch_port_transmit_constraint_errors_total counter
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_data_bytes_total Infiniband switch port PortXmitData
 		# TYPE infiniband_switch_port_transmit_data_bytes_total counter
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 178791657177235
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 36298026860928
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 26006570014026
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178791657177235
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 36298026860928
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 26006570014026
 		# HELP infiniband_switch_port_transmit_discards_total Infiniband switch port PortXmitDiscards
 		# TYPE infiniband_switch_port_transmit_discards_total counter
-		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 20046
-		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1"} 20046
+		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_transmit_discards_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_packets_total Infiniband switch port PortXmitPkts
 		# TYPE infiniband_switch_port_transmit_packets_total counter
-		infiniband_switch_port_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 393094651266
-		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 101733204203
-		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 122978948297
+		infiniband_switch_port_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 393094651266
+		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 101733204203
+		infiniband_switch_port_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 122978948297
 		# HELP infiniband_switch_port_transmit_wait_total Infiniband switch port PortXmitWait
 		# TYPE infiniband_switch_port_transmit_wait_total counter
-		infiniband_switch_port_transmit_wait_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 41864608
-		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 22730501
-		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 36510964
+		infiniband_switch_port_transmit_wait_total{guid="0x506b4b03005c2740",port="1"} 41864608
+		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="1"} 22730501
+		infiniband_switch_port_transmit_wait_total{guid="0x7cfe9003009ce5b0",port="2"} 36510964
 		# HELP infiniband_switch_port_unicast_receive_packets_total Infiniband switch port PortUnicastRcvPkts
 		# TYPE infiniband_switch_port_unicast_receive_packets_total counter
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387648134400
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 26677661727
-		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 93660802641
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x506b4b03005c2740",port="1"} 387648134400
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 26677661727
+		infiniband_switch_port_unicast_receive_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 93660802641
 		# HELP infiniband_switch_port_unicast_transmit_packets_total Infiniband switch port PortUnicastXmitPkts
 		# TYPE infiniband_switch_port_unicast_transmit_packets_total counter
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 387471005571
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 101708165289
-		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 122978948297
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x506b4b03005c2740",port="1"} 387471005571
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="1"} 101708165289
+		infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",port="2"} 122978948297
 		# HELP infiniband_switch_port_vl_mapping_errors_total Infiniband switch port PortVLMappingErrors
 		# TYPE infiniband_switch_port_vl_mapping_errors_total counter
-		infiniband_switch_port_vl_mapping_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_vl15_dropped_total Infiniband switch port VL15Dropped
 		# TYPE infiniband_switch_port_vl15_dropped_total counter
-		infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
-		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
-		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_rate_bytes_per_second Infiniband switch rate
+		# TYPE infiniband_switch_rate_bytes_per_second gauge
+		infiniband_switch_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.25e+10
+		infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
+		# HELP infiniband_switch_uplink_info Infiniband switch uplink information
+		# TYPE infiniband_switch_uplink_info gauge
+		infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01",uplink="ib-i1l2s01",uplink_guid="0x7cfe900300b07320",uplink_lid="1516",uplink_port="1",uplink_type="SW"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
+		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1
 	`
 	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 87 {
-		t.Errorf("Unexpected collection count %d, expected 87", val)
+	} else if val != 95 {
+		t.Errorf("Unexpected collection count %d, expected 95", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -352,6 +391,7 @@ func TestSwitchCollectorFull(t *testing.T) {
 		"infiniband_switch_port_buffer_overrun_errors_total", "infiniband_switch_port_dli_mapping_errors_total",
 		"infiniband_switch_port_local_physical_errors_total", "infiniband_switch_port_looping_errors_total",
 		"infiniband_switch_port_malformed_packet_errors_total", "infiniband_switch_port_vl_mapping_errors_total",
+		"infiniband_switch_info", "infiniband_switch_rate_bytes_per_second", "infiniband_switch_uplink_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
@@ -374,8 +414,8 @@ func TestSwitchCollectorError(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 3 {
-		t.Errorf("Unexpected collection count %d, expected 3", val)
+	} else if val != 11 {
+		t.Errorf("Unexpected collection count %d, expected 11", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -402,8 +442,8 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 3 {
-		t.Errorf("Unexpected collection count %d, expected 3", val)
+	} else if val != 11 {
+		t.Errorf("Unexpected collection count %d, expected 11", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
