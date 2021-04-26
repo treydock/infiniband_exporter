@@ -19,10 +19,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/treydock/infiniband_exporter/collectors"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -32,96 +34,8 @@ const (
 )
 
 var (
-	outputPath          string
-	perfqueryOutSwitch1 = `# Port extended counters: Lid 1719 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................36298026860928
-PortRcvData:.....................12279028775751
-PortXmitPkts:....................101733204203
-PortRcvPkts:.....................32262508468
-PortUnicastXmitPkts:.............101708165289
-PortUnicastRcvPkts:..............26677661727
-PortMulticastXmitPkts:...........25038914
-PortMulticastRcvPkts:............5584846741
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................22730501
-QP1Dropped:......................0
-# Port extended counters: Lid 1719 port 2 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................2
-CounterSelect:...................0x0000
-PortXmitData:....................26006570014026
-PortRcvData:.....................39078804993378
-PortXmitPkts:....................122978948297
-PortRcvPkts:.....................93660802641
-PortUnicastXmitPkts:.............122978948297
-PortUnicastRcvPkts:..............93660802641
-PortMulticastXmitPkts:...........0
-PortMulticastRcvPkts:............0
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............0
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........0
-PortXmitDiscards:................0
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................36510964
-QP1Dropped:......................0
-`
-	perfqueryOutSwitch2 = `# Port extended counters: Lid 2052 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
-PortSelect:......................1
-CounterSelect:...................0x0000
-PortXmitData:....................178791657177235
-PortRcvData:.....................178762341961629
-PortXmitPkts:....................393094651266
-PortRcvPkts:.....................387654829341
-PortUnicastXmitPkts:.............387471005571
-PortUnicastRcvPkts:..............387648134400
-PortMulticastXmitPkts:...........5623645694
-PortMulticastRcvPkts:............6694940
-CounterSelect2:..................0x00000000
-SymbolErrorCounter:..............0
-LinkErrorRecoveryCounter:........0
-LinkDownedCounter:...............1
-PortRcvErrors:...................0
-PortRcvRemotePhysicalErrors:.....0
-PortRcvSwitchRelayErrors:........7
-PortXmitDiscards:................20046
-PortXmitConstraintErrors:........0
-PortRcvConstraintErrors:.........0
-LocalLinkIntegrityErrors:........0
-ExcessiveBufferOverrunErrors:....0
-VL15Dropped:.....................0
-PortXmitWait:....................41864608
-QP1Dropped:......................0
-`
-	ibnetdiscoverOut = `CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
-CA   133  1 0x7cfe9003003b4b96 4x EDR - SW  1719 11 0x7cfe9003009ce5b0 ( 'o0002 HCA-1' - 'ib-i1l1s01' )
-CA  1432  1 0x506b4b0300cc02a6 4x EDR - SW  2052 35 0x506b4b03005c2740 ( 'p0001 HCA-1' - 'ib-i4l1s01' )
-SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )
-SW  1719 11 0x7cfe9003009ce5b0 4x EDR - CA   133  1 0x7cfe9003003b4b96 ( 'ib-i1l1s01' - 'o0002 HCA-1' )
-SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )
-SW  2052 37 0x506b4b03005c2740 4x ???                                    'ib-i4l1s01'
-`
-	expected = `# HELP infiniband_switch_port_excessive_buffer_overrun_errors_total Infiniband switch port ExcessiveBufferOverrunErrors
+	outputPath     string
+	expectedSwitch = `# HELP infiniband_switch_port_excessive_buffer_overrun_errors_total Infiniband switch port ExcessiveBufferOverrunErrors
 # TYPE infiniband_switch_port_excessive_buffer_overrun_errors_total counter
 infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
 infiniband_switch_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
@@ -231,7 +145,95 @@ infiniband_switch_port_unicast_transmit_packets_total{guid="0x7cfe9003009ce5b0",
 infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1",switch="ib-i4l1s01"} 0
 infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 0
 infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2",switch="ib-i1l1s01"} 0`
-	expectedNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+	expectedHCA = `# HELP infiniband_hca_port_excessive_buffer_overrun_errors_total Infiniband HCA port ExcessiveBufferOverrunErrors
+# TYPE infiniband_hca_port_excessive_buffer_overrun_errors_total counter
+infiniband_hca_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_link_downed_total Infiniband HCA port LinkDownedCounter
+# TYPE infiniband_hca_port_link_downed_total counter
+infiniband_hca_port_link_downed_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_link_downed_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_link_error_recovery_total Infiniband HCA port LinkErrorRecoveryCounter
+# TYPE infiniband_hca_port_link_error_recovery_total counter
+infiniband_hca_port_link_error_recovery_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_link_error_recovery_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_local_link_integrity_errors_total Infiniband HCA port LocalLinkIntegrityErrors
+# TYPE infiniband_hca_port_local_link_integrity_errors_total counter
+infiniband_hca_port_local_link_integrity_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_local_link_integrity_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_multicast_receive_packets_total Infiniband HCA port PortMulticastRcvPkts
+# TYPE infiniband_hca_port_multicast_receive_packets_total counter
+infiniband_hca_port_multicast_receive_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 3.732373137e+09
+infiniband_hca_port_multicast_receive_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 3.732158589e+09
+# HELP infiniband_hca_port_multicast_transmit_packets_total Infiniband HCA port PortMulticastXmitPkts
+# TYPE infiniband_hca_port_multicast_transmit_packets_total counter
+infiniband_hca_port_multicast_transmit_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 544690
+infiniband_hca_port_multicast_transmit_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 721488
+# HELP infiniband_hca_port_qp1_dropped_total Infiniband HCA port QP1Dropped
+# TYPE infiniband_hca_port_qp1_dropped_total counter
+infiniband_hca_port_qp1_dropped_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_qp1_dropped_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_receive_constraint_errors_total Infiniband HCA port PortRcvConstraintErrors
+# TYPE infiniband_hca_port_receive_constraint_errors_total counter
+infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_receive_data_bytes_total Infiniband HCA port PortRcvData
+# TYPE infiniband_hca_port_receive_data_bytes_total counter
+infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 3.7225401952885e+13
+infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 9.7524845883e+12
+# HELP infiniband_hca_port_receive_errors_total Infiniband HCA port PortRcvErrors
+# TYPE infiniband_hca_port_receive_errors_total counter
+infiniband_hca_port_receive_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_receive_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_receive_packets_total Infiniband HCA port PortRcvPkts
+# TYPE infiniband_hca_port_receive_packets_total counter
+infiniband_hca_port_receive_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 1.00583719365e+11
+infiniband_hca_port_receive_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 3.3038722564e+10
+# HELP infiniband_hca_port_receive_remote_physical_errors_total Infiniband HCA port PortRcvRemotePhysicalErrors
+# TYPE infiniband_hca_port_receive_remote_physical_errors_total counter
+infiniband_hca_port_receive_remote_physical_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_receive_remote_physical_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_receive_switch_relay_errors_total Infiniband HCA port PortRcvSwitchRelayErrors
+# TYPE infiniband_hca_port_receive_switch_relay_errors_total counter
+infiniband_hca_port_receive_switch_relay_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_receive_switch_relay_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_symbol_error_total Infiniband HCA port SymbolErrorCounter
+# TYPE infiniband_hca_port_symbol_error_total counter
+infiniband_hca_port_symbol_error_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_symbol_error_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_transmit_constraint_errors_total Infiniband HCA port PortXmitConstraintErrors
+# TYPE infiniband_hca_port_transmit_constraint_errors_total counter
+infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_transmit_data_bytes_total Infiniband HCA port PortXmitData
+# TYPE infiniband_hca_port_transmit_data_bytes_total counter
+infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 3.7108676853855e+13
+infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 9.049592493976e+12
+# HELP infiniband_hca_port_transmit_discards_total Infiniband HCA port PortXmitDiscards
+# TYPE infiniband_hca_port_transmit_discards_total counter
+infiniband_hca_port_transmit_discards_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_transmit_discards_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_transmit_packets_total Infiniband HCA port PortXmitPkts
+# TYPE infiniband_hca_port_transmit_packets_total counter
+infiniband_hca_port_transmit_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 9.691711732e+10
+infiniband_hca_port_transmit_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 2.8825338611e+10
+# HELP infiniband_hca_port_transmit_wait_total Infiniband HCA port PortXmitWait
+# TYPE infiniband_hca_port_transmit_wait_total counter
+infiniband_hca_port_transmit_wait_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_transmit_wait_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0
+# HELP infiniband_hca_port_unicast_receive_packets_total Infiniband HCA port PortUnicastRcvPkts
+# TYPE infiniband_hca_port_unicast_receive_packets_total counter
+infiniband_hca_port_unicast_receive_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 9.6851346228e+10
+infiniband_hca_port_unicast_receive_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 2.9306563974e+10
+# HELP infiniband_hca_port_unicast_transmit_packets_total Infiniband HCA port PortUnicastXmitPkts
+# TYPE infiniband_hca_port_unicast_transmit_packets_total counter
+infiniband_hca_port_unicast_transmit_packets_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 9.691657263e+10
+infiniband_hca_port_unicast_transmit_packets_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 2.8824617123e+10
+# HELP infiniband_hca_port_vl15_dropped_total Infiniband HCA port VL15Dropped
+# TYPE infiniband_hca_port_vl15_dropped_total counter
+infiniband_hca_port_vl15_dropped_total{guid="0x7cfe9003003b4b96",hca="o0002",port="1"} 0
+infiniband_hca_port_vl15_dropped_total{guid="0x7cfe9003003b4bde",hca="o0001",port="1"} 0`
+	expectedSwitchNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 # TYPE infiniband_exporter_collect_errors gauge
 infiniband_exporter_collect_errors{collector="ibnetdiscover"} 0
 infiniband_exporter_collect_errors{collector="switch"} 0
@@ -239,20 +241,42 @@ infiniband_exporter_collect_errors{collector="switch"} 0
 # TYPE infiniband_exporter_collect_timeouts gauge
 infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
 infiniband_exporter_collect_timeouts{collector="switch"} 0`
+	expectedFullNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+# TYPE infiniband_exporter_collect_errors gauge
+infiniband_exporter_collect_errors{collector="hca"} 0
+infiniband_exporter_collect_errors{collector="ibnetdiscover"} 0
+infiniband_exporter_collect_errors{collector="switch"} 0
+# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
+# TYPE infiniband_exporter_collect_timeouts gauge
+infiniband_exporter_collect_timeouts{collector="hca"} 0
+infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
+infiniband_exporter_collect_timeouts{collector="switch"} 0`
+	expectedIbnetdiscoverError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+# TYPE infiniband_exporter_collect_errors gauge
+infiniband_exporter_collect_errors{collector="ibnetdiscover"} 1
+# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
+# TYPE infiniband_exporter_collect_timeouts gauge
+infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0`
 )
 
 func TestMain(m *testing.M) {
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
 	collectors.IbnetdiscoverExec = func(ctx context.Context) (string, error) {
-		return ibnetdiscoverOut, nil
+		out, err := collectors.ReadFixture("ibnetdiscover", "test")
+		if err != nil {
+			level.Error(logger).Log("err", err)
+			os.Exit(1)
+		}
+		return out, nil
 	}
 	collectors.PerfqueryExec = func(guid string, port string, extraArgs []string, ctx context.Context) (string, error) {
-		if guid == "0x7cfe9003009ce5b0" {
-			return perfqueryOutSwitch1, nil
-		} else if guid == "0x506b4b03005c2740" {
-			return perfqueryOutSwitch2, nil
-		} else {
-			return "", nil
+		out, err := collectors.ReadFixture("perfquery", guid)
+		if err != nil {
+			level.Error(logger).Log("err", err)
+			os.Exit(1)
 		}
+		return out, nil
 	}
 	exitVal := m.Run()
 	os.Exit(exitVal)
@@ -278,11 +302,11 @@ func TestCollectToFile(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err.Error())
 		return
 	}
-	if !strings.Contains(string(content), expected) {
-		t.Errorf("Unexpected content:\nExpected:\n%s\nGot:\n%s", expected, string(content))
+	if !strings.Contains(string(content), expectedSwitch) {
+		t.Errorf("Unexpected content:\nExpected:\n%s\nGot:\n%s", expectedSwitch, string(content))
 	}
-	if !strings.Contains(string(content), expectedNoError) {
-		t.Errorf("Unexpected error content:\nExpected:\n%s\nGot:\n%s", expected, string(content))
+	if !strings.Contains(string(content), expectedSwitchNoError) {
+		t.Errorf("Unexpected error content:\nExpected:\n%s\nGot:\n%s", expectedSwitchNoError, string(content))
 	}
 }
 
@@ -297,20 +321,60 @@ func TestCollect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body, err := queryExporter()
+	body, err := queryExporter(metricsEndpoint)
 	if err != nil {
-		t.Fatalf("Unexpected error GET /metrics: %s", err.Error())
+		t.Fatalf("Unexpected error GET %s: %s", metricsEndpoint, err.Error())
 	}
-	if !strings.Contains(body, expected) {
-		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expected, body)
+	if !strings.Contains(body, expectedSwitch) {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedSwitch, body)
 	}
-	if !strings.Contains(body, expectedNoError) {
-		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedNoError, body)
+	if !strings.Contains(body, expectedSwitchNoError) {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedSwitchNoError, body)
+	}
+	if _, err = kingpin.CommandLine.Parse([]string{"--collector.hca", fmt.Sprintf("--web.listen-address=%s", address)}); err != nil {
+		t.Fatal(err)
+	}
+	body, err = queryExporter(metricsEndpoint)
+	if err != nil {
+		t.Fatalf("Unexpected error GET %s: %s", metricsEndpoint, err.Error())
+	}
+	if !strings.Contains(body, expectedHCA) {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedHCA, body)
+	}
+	if !strings.Contains(body, expectedFullNoError) {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedFullNoError, body)
+	}
+	collectors.IbnetdiscoverExec = func(ctx context.Context) (string, error) {
+		return "", fmt.Errorf("Error")
+	}
+	if _, err = kingpin.CommandLine.Parse([]string{"--web.disable-exporter-metrics", fmt.Sprintf("--web.listen-address=%s", address)}); err != nil {
+		t.Fatal(err)
+	}
+	body, err = queryExporter(metricsEndpoint)
+	if err != nil {
+		t.Fatalf("Unexpected error GET %s: %s", metricsEndpoint, err.Error())
+	}
+	// Remove duration as can't mock value yet
+	re := regexp.MustCompile(".*infiniband_exporter_collector_duration_seconds.*")
+	body = re.ReplaceAllString(body, "")
+	body = strings.TrimSpace(body)
+	if body != expectedIbnetdiscoverError {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedIbnetdiscoverError, body)
 	}
 }
 
-func queryExporter() (string, error) {
-	resp, err := http.Get(fmt.Sprintf("http://%s/metrics", address))
+func TestBaseURL(t *testing.T) {
+	body, err := queryExporter("")
+	if err != nil {
+		t.Fatalf("Unexpected error GET base URL: %s", err.Error())
+	}
+	if !strings.Contains(body, metricsEndpoint) {
+		t.Errorf("Unexpected body\nExpected: /metrics\nGot:\n%s\n", body)
+	}
+}
+
+func queryExporter(path string) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("http://%s%s", address, path))
 	if err != nil {
 		return "", err
 	}

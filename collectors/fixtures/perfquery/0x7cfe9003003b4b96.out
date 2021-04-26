@@ -1,0 +1,27 @@
+# Port extended counters: Lid 133 port 1 (CapMask: 0x5A00 CapMask2: 0x0000000)
+PortSelect:......................1
+CounterSelect:...................0x0000
+PortXmitData:....................37108676853855
+PortRcvData:.....................37225401952885
+PortXmitPkts:....................96917117320
+PortRcvPkts:.....................100583719365
+PortUnicastXmitPkts:.............96916572630
+PortUnicastRcvPkts:..............96851346228
+PortMulticastXmitPkts:...........544690
+PortMulticastRcvPkts:............3732373137
+CounterSelect2:..................0x00000000
+SymbolErrorCounter:..............0
+LinkErrorRecoveryCounter:........0
+LinkDownedCounter:...............0
+PortRcvErrors:...................0
+PortRcvRemotePhysicalErrors:.....0
+PortRcvSwitchRelayErrors:........0
+PortXmitDiscards:................0
+PortXmitConstraintErrors:........0
+PortRcvConstraintErrors:.........0
+LocalLinkIntegrityErrors:........0
+ExcessiveBufferOverrunErrors:....0
+VL15Dropped:.....................0
+PortXmitWait:....................0
+QP1Dropped:......................0
+

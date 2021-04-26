@@ -1,0 +1,8 @@
+CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )
+CA   133  1 0x7cfe9003003b4b96 4x EDR - SW  1719 11 0x7cfe9003009ce5b0 ( 'o0002 HCA-1' - 'ib-i1l1s01' )
+CA  1432  1 0x506b4b0300cc02a6 4x EDR - SW  2052 35 0x506b4b03005c2740 ( 'p0001 HCA-1' - 'ib-i4l1s01' )
+SW  1719 10 0x7cfe9003009ce5b0 4x EDR - CA   134  1 0x7cfe9003003b4bde ( 'ib-i1l1s01' - 'o0001 HCA-1' )
+SW  1719 11 0x7cfe9003009ce5b0 4x EDR - CA   133  1 0x7cfe9003003b4b96 ( 'ib-i1l1s01' - 'o0002 HCA-1' )
+SW  1719  1 0x7cfe9003009ce5b0 4x EDR - SW  1516  1 0x7cfe900300b07320 ( 'ib-i1l1s01' - 'ib-i1l2s01' )
+SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )
+SW  2052 37 0x506b4b03005c2740 4x ???                                    'ib-i4l1s01'

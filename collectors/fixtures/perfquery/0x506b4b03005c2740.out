@@ -1,0 +1,27 @@
+# Port extended counters: Lid 2052 port 1 (CapMask: 0x5300 CapMask2: 0x0000002)
+PortSelect:......................1
+CounterSelect:...................0x0000
+PortXmitData:....................178791657177235
+PortRcvData:.....................178762341961629
+PortXmitPkts:....................393094651266
+PortRcvPkts:.....................387654829341
+PortUnicastXmitPkts:.............387471005571
+PortUnicastRcvPkts:..............387648134400
+PortMulticastXmitPkts:...........5623645694
+PortMulticastRcvPkts:............6694940
+CounterSelect2:..................0x00000000
+SymbolErrorCounter:..............0
+LinkErrorRecoveryCounter:........0
+LinkDownedCounter:...............1
+PortRcvErrors:...................0
+PortRcvRemotePhysicalErrors:.....0
+PortRcvSwitchRelayErrors:........7
+PortXmitDiscards:................20046
+PortXmitConstraintErrors:........0
+PortRcvConstraintErrors:.........0
+LocalLinkIntegrityErrors:........0
+ExcessiveBufferOverrunErrors:....0
+VL15Dropped:.....................0
+PortXmitWait:....................41864608
+QP1Dropped:......................0
+

@@ -80,9 +80,10 @@ func initializeCounters(counters *PerfQueryCounters) {
 	}
 }
 
-func perfqueryParse(device InfinibandDevice, out string, logger log.Logger) ([]PerfQueryCounters, error) {
+func perfqueryParse(device InfinibandDevice, out string, logger log.Logger) ([]PerfQueryCounters, float64) {
 	var counters []PerfQueryCounters
 	var port string
+	var errors float64
 	portCounters := make(map[string]PerfQueryCounters)
 	lines := strings.Split(out, "\n")
 	for _, line := range lines {
@@ -115,6 +116,7 @@ func perfqueryParse(device InfinibandDevice, out string, logger log.Logger) ([]P
 			val, err := strconv.ParseFloat(value, 64)
 			if err != nil {
 				level.Error(logger).Log("msg", "Unable to parse counter value", "err", err)
+				errors++
 				continue
 			}
 			f.SetFloat(val)
@@ -124,7 +126,7 @@ func perfqueryParse(device InfinibandDevice, out string, logger log.Logger) ([]P
 	for _, counter := range portCounters {
 		counters = append(counters, counter)
 	}
-	return counters, nil
+	return counters, errors
 }
 
 func perfqueryArgs(guid string, port string, extraArgs []string) (string, []string) {

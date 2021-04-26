@@ -14,7 +14,11 @@
 package collectors
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -41,18 +45,17 @@ var (
 		[]string{"collector"}, nil)
 )
 
-func getDeviceGUIDs(devices map[string]InfinibandDevice) []string {
-	keys := make([]string, 0, len(devices))
-	for key := range devices {
-		keys = append(keys, key)
+func ReadFixture(outputType string, name string) (string, error) {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+	if filepath.Base(dir) != "collectors" {
+		dir = filepath.Join(dir, "collectors")
 	}
-	return keys
-}
-
-func getDevicePorts(uplinks map[string]InfinibandUplink) []string {
-	keys := make([]string, 0, len(uplinks))
-	for key := range uplinks {
-		keys = append(keys, key)
+	fixtureDir := filepath.Join(dir, "fixtures", outputType)
+	fixture := filepath.Join(fixtureDir, fmt.Sprintf("%s.out", name))
+	buffer, err := os.ReadFile(fixture)
+	if err != nil {
+		return "", err
 	}
-	return keys
+	return string(buffer), nil
 }
