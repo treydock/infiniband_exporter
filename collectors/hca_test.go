@@ -24,14 +24,14 @@ import (
 
 var (
 	hcaDevices = []InfinibandDevice{
-		InfinibandDevice{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), Name: "o0002",
 			Uplinks: map[string]InfinibandUplink{
-				"1": InfinibandUplink{Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
+				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		InfinibandDevice{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), Name: "o0001",
 			Uplinks: map[string]InfinibandUplink{
-				"1": InfinibandUplink{Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
+				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
 	}

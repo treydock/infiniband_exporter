@@ -40,7 +40,7 @@ PortRcvPkts:.....................32262508468`
 
 func TestPerfqueryParse(t *testing.T) {
 	expected := []PerfQueryCounters{
-		PerfQueryCounters{
+		{
 			device:                       perfqueryTestDevice,
 			PortSelect:                   "1",
 			PortXmitData:                 36298026860928,
@@ -72,7 +72,7 @@ func TestPerfqueryParse(t *testing.T) {
 			PortVLMappingErrors:          math.NaN(),
 			PortLoopingErrors:            math.NaN(),
 		},
-		PerfQueryCounters{
+		{
 			device:                       perfqueryTestDevice,
 			PortSelect:                   "2",
 			PortXmitData:                 26006570014026,
@@ -121,7 +121,7 @@ func TestPerfqueryParse(t *testing.T) {
 
 func TestPerfqueryParseRcvErrorDetails(t *testing.T) {
 	expected := []PerfQueryCounters{
-		PerfQueryCounters{
+		{
 			device:                       perfqueryTestDevice,
 			PortSelect:                   "1",
 			PortXmitData:                 math.NaN(),
