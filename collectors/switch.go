@@ -28,12 +28,14 @@ import (
 
 var (
 	CollectSwitch       = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
+	switchCollectBase   = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
 	switchCollectRcvErr = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
 )
 
 type SwitchCollector struct {
 	devices                      *[]InfinibandDevice
 	logger                       log.Logger
+	collector                    string
 	PortXmitData                 *prometheus.Desc
 	PortRcvData                  *prometheus.Desc
 	PortXmitPkts                 *prometheus.Desc
@@ -67,11 +69,16 @@ type SwitchCollector struct {
 	Info                         *prometheus.Desc
 }
 
-func NewSwitchCollector(devices *[]InfinibandDevice, logger log.Logger) *SwitchCollector {
+func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Logger) *SwitchCollector {
 	labels := []string{"guid", "port"}
+	collector := "switch"
+	if runonce {
+		collector = "switch-runonce"
+	}
 	return &SwitchCollector{
-		devices: devices,
-		logger:  log.With(logger, "collector", "switch"),
+		devices:   devices,
+		logger:    log.With(logger, "collector", collector),
+		collector: collector,
 		PortXmitData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_transmit_data_bytes_total"),
 			"Infiniband switch port PortXmitData", labels, nil),
 		PortRcvData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_receive_data_bytes_total"),
@@ -260,16 +267,18 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(s.PortLoopingErrors, prometheus.CounterValue, c.PortLoopingErrors, c.device.GUID, c.PortSelect)
 		}
 	}
-	for _, device := range *s.devices {
-		ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
-		ch <- prometheus.MustNewConstMetric(s.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
-		for port, uplink := range device.Uplinks {
-			ch <- prometheus.MustNewConstMetric(s.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
+	if *switchCollectBase {
+		for _, device := range *s.devices {
+			ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
+			ch <- prometheus.MustNewConstMetric(s.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
+			for port, uplink := range device.Uplinks {
+				ch <- prometheus.MustNewConstMetric(s.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
+			}
 		}
 	}
-	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, "switch")
-	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, "switch")
-	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), "switch")
+	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, s.collector)
+	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, s.collector)
+	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), s.collector)
 }
 
 func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
@@ -301,10 +310,12 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, s.logger)
 			errors = errors + errs
-			level.Debug(s.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
-			countersLock.Lock()
-			counters = append(counters, deviceCounters...)
-			countersLock.Unlock()
+			if *switchCollectBase {
+				level.Debug(s.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
+				countersLock.Lock()
+				counters = append(counters, deviceCounters...)
+				countersLock.Unlock()
+			}
 			if *switchCollectRcvErr {
 				for _, deviceCounter := range deviceCounters {
 					ctxRcvErr, cancelRcvErr := context.WithTimeout(context.Background(), *perfqueryTimeout)

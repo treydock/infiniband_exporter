@@ -28,12 +28,14 @@ import (
 
 var (
 	CollectHCA       = kingpin.Flag("collector.hca", "Enable the HCA collector").Default("false").Bool()
+	hcaCollectBase   = kingpin.Flag("collector.hca.base-metrics", "Collect base metrics").Default("true").Bool()
 	hcaCollectRcvErr = kingpin.Flag("collector.hca.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
 )
 
 type HCACollector struct {
 	devices                      *[]InfinibandDevice
 	logger                       log.Logger
+	collector                    string
 	PortXmitData                 *prometheus.Desc
 	PortRcvData                  *prometheus.Desc
 	PortXmitPkts                 *prometheus.Desc
@@ -67,11 +69,16 @@ type HCACollector struct {
 	Info                         *prometheus.Desc
 }
 
-func NewHCACollector(devices *[]InfinibandDevice, logger log.Logger) *HCACollector {
+func NewHCACollector(devices *[]InfinibandDevice, runonce bool, logger log.Logger) *HCACollector {
 	labels := []string{"guid", "port"}
+	collector := "hca"
+	if runonce {
+		collector = "hca-runonce"
+	}
 	return &HCACollector{
-		devices: devices,
-		logger:  log.With(logger, "collector", "hca"),
+		devices:   devices,
+		logger:    log.With(logger, "collector", collector),
+		collector: collector,
 		PortXmitData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "port_transmit_data_bytes_total"),
 			"Infiniband HCA port PortXmitData", labels, nil),
 		PortRcvData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "port_receive_data_bytes_total"),
@@ -260,16 +267,18 @@ func (h *HCACollector) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(h.PortLoopingErrors, prometheus.CounterValue, c.PortLoopingErrors, c.device.GUID, c.PortSelect)
 		}
 	}
-	for _, device := range *h.devices {
-		ch <- prometheus.MustNewConstMetric(h.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
-		ch <- prometheus.MustNewConstMetric(h.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
-		for port, uplink := range device.Uplinks {
-			ch <- prometheus.MustNewConstMetric(h.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
+	if *hcaCollectBase {
+		for _, device := range *h.devices {
+			ch <- prometheus.MustNewConstMetric(h.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
+			ch <- prometheus.MustNewConstMetric(h.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
+			for port, uplink := range device.Uplinks {
+				ch <- prometheus.MustNewConstMetric(h.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
+			}
 		}
 	}
-	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, "hca")
-	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, "hca")
-	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), "hca")
+	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, h.collector)
+	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, h.collector)
+	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), h.collector)
 }
 
 func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
@@ -301,10 +310,12 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, h.logger)
 			errors = errors + errs
-			level.Debug(h.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
-			countersLock.Lock()
-			counters = append(counters, deviceCounters...)
-			countersLock.Unlock()
+			if *hcaCollectBase {
+				level.Debug(h.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
+				countersLock.Lock()
+				counters = append(counters, deviceCounters...)
+				countersLock.Unlock()
+			}
 			if *hcaCollectRcvErr {
 				for _, deviceCounter := range deviceCounters {
 					ctxRcvErr, cancelRcvErr := context.WithTimeout(context.Background(), *perfqueryTimeout)

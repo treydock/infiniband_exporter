@@ -43,21 +43,21 @@ var (
 	disableExporterMetrics = kingpin.Flag("web.disable-exporter-metrics", "Exclude metrics about the exporter (promhttp_*, process_*, go_*)").Default("false").Bool()
 )
 
-func setupGathers(logger log.Logger) prometheus.Gatherer {
+func setupGathers(runonce bool, logger log.Logger) prometheus.Gatherer {
 	registry := prometheus.NewRegistry()
 
-	ibnetdiscoverCollector := collectors.NewIBNetDiscover(logger)
+	ibnetdiscoverCollector := collectors.NewIBNetDiscover(runonce, logger)
 	registry.MustRegister(ibnetdiscoverCollector)
 	switches, hcas, err := ibnetdiscoverCollector.GetPorts()
 	if err != nil {
 		level.Error(logger).Log("msg", "Error collecting ports with ibnetdiscover", "err", err)
 	} else {
 		if *collectors.CollectSwitch {
-			switchCollector := collectors.NewSwitchCollector(switches, logger)
+			switchCollector := collectors.NewSwitchCollector(switches, runonce, logger)
 			registry.MustRegister(switchCollector)
 		}
 		if *collectors.CollectHCA {
-			hcaCollector := collectors.NewHCACollector(hcas, logger)
+			hcaCollector := collectors.NewHCACollector(hcas, runonce, logger)
 			registry.MustRegister(hcaCollector)
 		}
 	}
@@ -72,7 +72,7 @@ func setupGathers(logger log.Logger) prometheus.Gatherer {
 
 func metricsHandler(logger log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		gatherers := setupGathers(logger)
+		gatherers := setupGathers(false, logger)
 
 		// Delegate http serving to Prometheus client library, which will call collector.Collect.
 		h := promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{})
@@ -87,7 +87,7 @@ func writeMetrics(logger log.Logger) error {
 		return err
 	}
 	defer os.Remove(tmp.Name())
-	gatherers := setupGathers(logger)
+	gatherers := setupGathers(true, logger)
 	err = prometheus.WriteToTextfile(tmp.Name(), gatherers)
 	if err != nil {
 		level.Error(logger).Log("msg", "Error writing Prometheus metrics to file", "path", tmp.Name(), "err", err)

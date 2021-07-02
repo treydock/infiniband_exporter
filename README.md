@@ -49,12 +49,21 @@ If `ibnetdiscover` and `perfquery` are not in PATH then their paths need to be p
 
 If you have a large fabric where collection times are too long for Prometheus scrapes, the exporter can instead write metrics to a file that can be collected by node_exporter textfile collection.
 
-This exporter has been tested on a fabric with 109 switches each having around 36 ports and collecting only switches takes ~20 seconds.
+This exporter has been tested on a fabric with 109 switches each having around 36 ports and collecting only switches takes ~10 seconds.
 
 To collect the metrics from a file pass the `--collector.textfile.directory` flag to node_exporter like so: `--collector.textfile.directory=/var/lib/node_exporter/textfile_collector`.  Add this exporter to be executed via cron using flags like the following:
 
 * `--exporter.runonce`
 * `--exporter.output=/var/lib/node_exporter/textfile_collector/infiniband_exporter.prom`
+
+The collection time of `--collector.switch.rcv-err-details` can take much longer than base metrics due to having to execute `perfquery` once per port.
+One way to collect these metrics is collect base metrics with Prometheus scrapes and collect `--collector.switch.rcv-err-details` with runonce using the following flags (example on 8 core system, adjust `--perfquery.max-concurrent` as needed):
+
+* `--exporter.runonce`
+* `--exporter.output=/var/lib/node_exporter/textfile_collector/infiniband_exporter.prom`
+* `--no-collector.switch.base-metrics`
+* `--collector.switch.rcv-err-details`
+* `--perfquery.max-concurrent=8`
 
 ## Docker
 
