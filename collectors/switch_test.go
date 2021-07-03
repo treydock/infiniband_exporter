@@ -176,7 +176,7 @@ func TestSwitchCollector(t *testing.T) {
 		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
 		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1
 	`
-	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -369,12 +369,83 @@ func TestSwitchCollectorFull(t *testing.T) {
 		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
 		infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1
 	`
-	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	} else if val != 95 {
 		t.Errorf("Unexpected collection count %d, expected 95", val)
+	}
+	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
+		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
+		"infiniband_switch_port_link_error_recovery_total", "infiniband_switch_port_local_link_integrity_errors_total",
+		"infiniband_switch_port_multicast_receive_packets_total", "infiniband_switch_port_multicast_transmit_packets_total",
+		"infiniband_switch_port_qp1_dropped_total", "infiniband_switch_port_receive_constraint_errors_total",
+		"infiniband_switch_port_receive_data_bytes_total", "infiniband_switch_port_receive_errors_total",
+		"infiniband_switch_port_receive_packets_total", "infiniband_switch_port_receive_remote_physical_errors_total",
+		"infiniband_switch_port_receive_switch_relay_errors_total", "infiniband_switch_port_symbol_error_total",
+		"infiniband_switch_port_transmit_constraint_errors_total", "infiniband_switch_port_transmit_data_bytes_total",
+		"infiniband_switch_port_transmit_discards_total", "infiniband_switch_port_transmit_packets_total",
+		"infiniband_switch_port_transmit_wait_total", "infiniband_switch_port_unicast_receive_packets_total",
+		"infiniband_switch_port_unicast_transmit_packets_total", "infiniband_switch_port_vl15_dropped_total",
+		"infiniband_switch_port_buffer_overrun_errors_total", "infiniband_switch_port_dli_mapping_errors_total",
+		"infiniband_switch_port_local_physical_errors_total", "infiniband_switch_port_looping_errors_total",
+		"infiniband_switch_port_malformed_packet_errors_total", "infiniband_switch_port_vl_mapping_errors_total",
+		"infiniband_switch_info", "infiniband_switch_rate_bytes_per_second", "infiniband_switch_uplink_info",
+		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
+		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestSwitchCollectorNoBase(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{"--no-collector.switch.base-metrics", "--collector.switch.rcv-err-details"}); err != nil {
+		t.Fatal(err)
+	}
+	SetPerfqueryExecs(t, false, false)
+	expected := `
+		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+		# TYPE infiniband_exporter_collect_errors gauge
+		infiniband_exporter_collect_errors{collector="switch"} 0
+		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
+		# TYPE infiniband_exporter_collect_timeouts gauge
+		infiniband_exporter_collect_timeouts{collector="switch"} 0
+		# HELP infiniband_switch_port_buffer_overrun_errors_total Infiniband switch port PortBufferOverrunErrors
+		# TYPE infiniband_switch_port_buffer_overrun_errors_total counter
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_buffer_overrun_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_port_dli_mapping_errors_total Infiniband switch port PortDLIDMappingErrors
+		# TYPE infiniband_switch_port_dli_mapping_errors_total counter
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_dli_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_port_local_physical_errors_total Infiniband switch port PortLocalPhysicalErrors
+		# TYPE infiniband_switch_port_local_physical_errors_total counter
+		infiniband_switch_port_local_physical_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_local_physical_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_port_looping_errors_total Infiniband switch port PortLoopingErrors
+		# TYPE infiniband_switch_port_looping_errors_total counter
+		infiniband_switch_port_looping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_looping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_port_malformed_packet_errors_total Infiniband switch port PortMalformedPktErrors
+		# TYPE infiniband_switch_port_malformed_packet_errors_total counter
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_malformed_packet_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_port_vl_mapping_errors_total Infiniband switch port PortVLMappingErrors
+		# TYPE infiniband_switch_port_vl_mapping_errors_total counter
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x506b4b03005c2740",port="1"} 0
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="1"} 0
+		infiniband_switch_port_vl_mapping_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+	`
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	if val, err := testutil.GatherAndCount(gatherers); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	} else if val != 21 {
+		t.Errorf("Unexpected collection count %d, expected 21", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -410,7 +481,35 @@ func TestSwitchCollectorError(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
 	`
-	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	if val, err := testutil.GatherAndCount(gatherers); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	} else if val != 11 {
+		t.Errorf("Unexpected collection count %d, expected 11", val)
+	}
+	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
+		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
+		"infiniband_switch_port_link_error_recovery_total", "infiniband_switch_port_local_link_integrity_errors_total",
+		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
+		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestSwitchCollectorErrorRunonce(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+		t.Fatal(err)
+	}
+	SetPerfqueryExecs(t, true, false)
+	expected := `
+		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+		# TYPE infiniband_exporter_collect_errors gauge
+		infiniband_exporter_collect_errors{collector="switch-runonce"} 2
+		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
+		# TYPE infiniband_exporter_collect_timeouts gauge
+		infiniband_exporter_collect_timeouts{collector="switch-runonce"} 0
+	`
+	collector := NewSwitchCollector(&switchDevices, true, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -438,7 +537,7 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 2
 	`
-	collector := NewSwitchCollector(&switchDevices, log.NewNopLogger())
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)

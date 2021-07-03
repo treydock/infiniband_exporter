@@ -264,28 +264,28 @@ infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink
 infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_type="SW"} 1`
 	expectedSwitchNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 # TYPE infiniband_exporter_collect_errors gauge
-infiniband_exporter_collect_errors{collector="ibnetdiscover"} 0
-infiniband_exporter_collect_errors{collector="switch"} 0
+infiniband_exporter_collect_errors{collector="ibnetdiscover-runonce"} 0
+infiniband_exporter_collect_errors{collector="switch-runonce"} 0
 # HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 # TYPE infiniband_exporter_collect_timeouts gauge
-infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
-infiniband_exporter_collect_timeouts{collector="switch"} 0`
+infiniband_exporter_collect_timeouts{collector="ibnetdiscover-runonce"} 0
+infiniband_exporter_collect_timeouts{collector="switch-runonce"} 0`
 	expectedFullNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 # TYPE infiniband_exporter_collect_errors gauge
-infiniband_exporter_collect_errors{collector="hca"} 0
-infiniband_exporter_collect_errors{collector="ibnetdiscover"} 0
-infiniband_exporter_collect_errors{collector="switch"} 0
+infiniband_exporter_collect_errors{collector="hca-runonce"} 0
+infiniband_exporter_collect_errors{collector="ibnetdiscover-runonce"} 0
+infiniband_exporter_collect_errors{collector="switch-runonce"} 0
 # HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 # TYPE infiniband_exporter_collect_timeouts gauge
-infiniband_exporter_collect_timeouts{collector="hca"} 0
-infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
-infiniband_exporter_collect_timeouts{collector="switch"} 0`
+infiniband_exporter_collect_timeouts{collector="hca-runonce"} 0
+infiniband_exporter_collect_timeouts{collector="ibnetdiscover-runonce"} 0
+infiniband_exporter_collect_timeouts{collector="switch-runonce"} 0`
 	expectedIbnetdiscoverError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 # TYPE infiniband_exporter_collect_errors gauge
-infiniband_exporter_collect_errors{collector="ibnetdiscover"} 1
+infiniband_exporter_collect_errors{collector="ibnetdiscover-runonce"} 1
 # HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 # TYPE infiniband_exporter_collect_timeouts gauge
-infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0`
+infiniband_exporter_collect_timeouts{collector="ibnetdiscover-runonce"} 0`
 )
 
 func TestMain(m *testing.M) {
@@ -357,6 +357,9 @@ func TestCollect(t *testing.T) {
 	if !strings.Contains(body, expectedSwitch) {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedSwitch, body)
 	}
+	// remove -runonce collector suffix
+	runonceRe := regexp.MustCompile("-runonce")
+	expectedSwitchNoError = runonceRe.ReplaceAllString(expectedSwitchNoError, "")
 	if !strings.Contains(body, expectedSwitchNoError) {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedSwitchNoError, body)
 	}
@@ -370,6 +373,7 @@ func TestCollect(t *testing.T) {
 	if !strings.Contains(body, expectedHCA) {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedHCA, body)
 	}
+	expectedFullNoError = runonceRe.ReplaceAllString(expectedFullNoError, "")
 	if !strings.Contains(body, expectedFullNoError) {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedFullNoError, body)
 	}
@@ -387,6 +391,7 @@ func TestCollect(t *testing.T) {
 	re := regexp.MustCompile(".*infiniband_exporter_collector_duration_seconds.*")
 	body = re.ReplaceAllString(body, "")
 	body = strings.TrimSpace(body)
+	expectedIbnetdiscoverError = runonceRe.ReplaceAllString(expectedIbnetdiscoverError, "")
 	if body != expectedIbnetdiscoverError {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedIbnetdiscoverError, body)
 	}

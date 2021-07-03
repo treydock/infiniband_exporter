@@ -45,7 +45,7 @@ func TestIbnetdiscoverCollector(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
 	`
-	collector := NewIBNetDiscover(log.NewNopLogger())
+	collector := NewIBNetDiscover(false, log.NewNopLogger())
 	_, _, _ = collector.GetPorts()
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
@@ -69,7 +69,31 @@ func TestIbnetdiscoverCollectorError(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 0
 	`
-	collector := NewIBNetDiscover(log.NewNopLogger())
+	collector := NewIBNetDiscover(false, log.NewNopLogger())
+	_, _, _ = collector.GetPorts()
+	gatherers := setupGatherer(collector)
+	if val, err := testutil.GatherAndCount(gatherers); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	} else if val != 3 {
+		t.Errorf("Unexpected collection count %d, expected 3", val)
+	}
+	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
+		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
+		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestIbnetdiscoverCollectorErrorRunonce(t *testing.T) {
+	SetIbnetdiscoverExec(t, true, false)
+	expected := `
+		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
+		# TYPE infiniband_exporter_collect_errors gauge
+		infiniband_exporter_collect_errors{collector="ibnetdiscover-runonce"} 1
+		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
+		# TYPE infiniband_exporter_collect_timeouts gauge
+		infiniband_exporter_collect_timeouts{collector="ibnetdiscover-runonce"} 0
+	`
+	collector := NewIBNetDiscover(true, log.NewNopLogger())
 	_, _, _ = collector.GetPorts()
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
@@ -93,7 +117,7 @@ func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="ibnetdiscover"} 1
 	`
-	collector := NewIBNetDiscover(log.NewNopLogger())
+	collector := NewIBNetDiscover(false, log.NewNopLogger())
 	_, _, _ = collector.GetPorts()
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {

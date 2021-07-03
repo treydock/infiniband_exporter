@@ -70,11 +70,17 @@ type IBNetDiscover struct {
 	errorMetric   float64
 	duration      float64
 	logger        log.Logger
+	collector     string
 }
 
-func NewIBNetDiscover(logger log.Logger) *IBNetDiscover {
+func NewIBNetDiscover(runonce bool, logger log.Logger) *IBNetDiscover {
+	collector := "ibnetdiscover"
+	if runonce {
+		collector = "ibnetdiscover-runonce"
+	}
 	return &IBNetDiscover{
-		logger: log.With(logger, "collector", "ibnetdiscover"),
+		logger:    log.With(logger, "collector", collector),
+		collector: collector,
 	}
 }
 
@@ -96,9 +102,9 @@ func (ib *IBNetDiscover) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (ib *IBNetDiscover) Collect(ch chan<- prometheus.Metric) {
-	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, ib.errorMetric, "ibnetdiscover")
-	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, ib.timeoutMetric, "ibnetdiscover")
-	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, ib.duration, "ibnetdiscover")
+	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, ib.errorMetric, ib.collector)
+	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, ib.timeoutMetric, ib.collector)
+	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, ib.duration, ib.collector)
 }
 
 func (ib *IBNetDiscover) collect() (*[]InfinibandDevice, *[]InfinibandDevice, error) {
