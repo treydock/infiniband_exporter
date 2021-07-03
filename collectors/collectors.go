@@ -43,6 +43,9 @@ var (
 		prometheus.BuildFQName(namespace, "exporter", "collect_timeouts"),
 		"Number of timeouts that occurred during collection",
 		[]string{"collector"}, nil)
+	lastExecution = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "exporter", "last_execution"),
+		"Last execution time of exporter", []string{"collector"}, nil)
 )
 
 func ReadFixture(outputType string, name string) (string, error) {

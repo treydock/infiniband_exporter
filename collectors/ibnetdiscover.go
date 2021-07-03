@@ -105,6 +105,9 @@ func (ib *IBNetDiscover) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, ib.errorMetric, ib.collector)
 	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, ib.timeoutMetric, ib.collector)
 	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, ib.duration, ib.collector)
+	if strings.HasSuffix(ib.collector, "-runonce") {
+		ch <- prometheus.MustNewConstMetric(lastExecution, prometheus.GaugeValue, float64(time.Now().Unix()), ib.collector)
+	}
 }
 
 func (ib *IBNetDiscover) collect() (*[]InfinibandDevice, *[]InfinibandDevice, error) {

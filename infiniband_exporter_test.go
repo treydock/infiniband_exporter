@@ -337,6 +337,9 @@ func TestCollectToFile(t *testing.T) {
 	if !strings.Contains(string(content), expectedSwitchNoError) {
 		t.Errorf("Unexpected error content:\nExpected:\n%s\nGot:\n%s", expectedSwitchNoError, string(content))
 	}
+	if !strings.Contains(string(content), "infiniband_exporter_last_execution") {
+		t.Errorf("Unexpected error content:\nExpected: infiniband_exporter_last_execution\nGot:\n%s", string(content))
+	}
 }
 
 func TestCollect(t *testing.T) {

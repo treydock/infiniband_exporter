@@ -279,6 +279,9 @@ func (h *HCACollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, h.collector)
 	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, h.collector)
 	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), h.collector)
+	if strings.HasSuffix(h.collector, "-runonce") {
+		ch <- prometheus.MustNewConstMetric(lastExecution, prometheus.GaugeValue, float64(time.Now().Unix()), h.collector)
+	}
 }
 
 func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
