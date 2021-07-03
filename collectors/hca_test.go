@@ -386,8 +386,8 @@ func TestHCACollectorErrorRunonce(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 9 {
-		t.Errorf("Unexpected collection count %d, expected 9", val)
+	} else if val != 10 {
+		t.Errorf("Unexpected collection count %d, expected 10", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_hca_port_excessive_buffer_overrun_errors_total", "infiniband_hca_port_link_downed_total",

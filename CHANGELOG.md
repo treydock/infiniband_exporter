@@ -1,3 +1,7 @@
+## Unreleased
+
+* Add `infiniband_exporter_last_execution` metric when exporter is run with `--exporter.runonce`
+
 ## 0.1.0 / 2021-07-03
 
 * Add `--no-collector.hca.base-metrics` flag to disable collecting base HCA metrics
