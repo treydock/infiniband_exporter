@@ -1,4 +1,4 @@
-## Unreleased
+## 0.2.0 / 2021-07-03
 
 * Add `infiniband_exporter_last_execution` metric when exporter is run with `--exporter.runonce`
 
