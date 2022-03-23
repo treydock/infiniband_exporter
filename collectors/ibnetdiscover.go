@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -156,7 +156,7 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 		}
 		portName, uplinkName, err := parseNames(line)
 		if err != nil {
-			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID)
+			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID, "line", line)
 			return nil, nil, err
 		}
 		device.Name = portName
