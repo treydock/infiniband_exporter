@@ -2,15 +2,15 @@
 version: 2.1
 
 orbs:
-  prometheus: prometheus/prometheus@0.11.0
-  codecov: codecov/codecov@1.0.5
+  prometheus: prometheus/prometheus@0.16.0
+  codecov: codecov/codecov@3.2.2
 
 executors:
   # Whenever the Go version is updated here, .promu.yml should
   # also be updated.
   golang:
     docker:
-    - image: circleci/golang:1.16
+    - image: circleci/golang:1.17
 
 jobs:
   test:
