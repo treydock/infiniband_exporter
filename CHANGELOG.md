@@ -1,3 +1,7 @@
+## 0.3.1 / 2022-08-24
+
+* Handle switches with split mode enabled (#8)
+
 ## 0.3.0 / 2022-03-23
 
 * Update to Go 1.17 and update Go module dependencies
