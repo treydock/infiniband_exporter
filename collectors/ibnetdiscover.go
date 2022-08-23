@@ -135,6 +135,10 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			level.Debug(logger).Log("msg", "Skipping line that is not connected", "line", line)
 			continue
 		}
+		if items[5] == "SDR" && len(items) == 7 {
+			level.Debug(logger).Log("msg", "Skipping split mode port", "line", line)
+			continue
+		}
 		guid := items[3]
 		portNumber := items[2]
 		var device InfinibandDevice
