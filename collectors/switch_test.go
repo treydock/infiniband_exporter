@@ -14,12 +14,17 @@
 package collectors
 
 import (
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus/testutil"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -38,6 +43,76 @@ var (
 		},
 	}
 )
+
+func TestParseIBSWInfo(t *testing.T) {
+	out, err := ReadFixture("ibswinfo", "test1")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	data, err := parse_ibswinfo(out, log.NewNopLogger())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if len(data.PowerSupplies) != 2 {
+		t.Errorf("Unexpected number of power supplies, got %d", len(data.PowerSupplies))
+	}
+	var psu0 SwitchPowerSupply
+	for _, psu := range data.PowerSupplies {
+		if psu.ID == "0" {
+			psu0 = psu
+			break
+		}
+	}
+	if psu0.Status != "OK" {
+		t.Errorf("Unexpected power supply status, got %s", psu0.Status)
+	}
+	if psu0.DCPower != "OK" {
+		t.Errorf("Unexpected power supply dc power status, got %s", psu0.DCPower)
+	}
+	if psu0.FanStatus != "OK" {
+		t.Errorf("Unexpected power supply fan status, got %s", psu0.FanStatus)
+	}
+	if psu0.PowerW != 72 {
+		t.Errorf("Unexpected power supply watts, got %f", psu0.PowerW)
+	}
+	if data.Temp != 45 {
+		t.Errorf("Unexpected temp, got %f", data.Temp)
+	}
+	if data.FanStatus != "OK" {
+		t.Errorf("Unexpected fan status, got %s", data.FanStatus)
+	}
+	if len(data.Fans) != 8 {
+		t.Errorf("Unexpected number of fans, got %d", len(data.Fans))
+	}
+	var fan1 SwitchFan
+	for _, fan := range data.Fans {
+		if fan.ID == "1" {
+			fan1 = fan
+			break
+		}
+	}
+	if fan1.RPM != 8493 {
+		t.Errorf("Unexpected fan RPM, got %f", fan1.RPM)
+	}
+}
+
+func TestParseIBSWInfoErrors(t *testing.T) {
+	tests := []string{
+		"test-err1",
+		"test-err2",
+		"test-err3",
+	}
+	for i, test := range tests {
+		out, err := ReadFixture("ibswinfo", test)
+		if err != nil {
+			t.Fatalf("Unable to read fixture %s", test)
+		}
+		_, err = parse_ibswinfo(out, log.NewNopLogger())
+		if err == nil {
+			t.Errorf("Expected an error for test %s(%d)", test, i)
+		}
+	}
+}
 
 func TestSwitchCollector(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
@@ -203,10 +278,21 @@ func TestSwitchCollector(t *testing.T) {
 }
 
 func TestSwitchCollectorFull(t *testing.T) {
-	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.rcv-err-details"}); err != nil {
+	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.rcv-err-details", "--collector.switch.ibswinfo"}); err != nil {
 		t.Fatal(err)
 	}
 	SetPerfqueryExecs(t, false, false)
+	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		if lid == "1719" {
+			out, err := ReadFixture("ibswinfo", "test1")
+			return out, err
+		} else if lid == "2052" {
+			out, err := ReadFixture("ibswinfo", "test2")
+			return out, err
+		} else {
+			return "", nil
+		}
+	}
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
@@ -214,6 +300,29 @@ func TestSwitchCollectorFull(t *testing.T) {
 		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
+		# HELP infiniband_switch_fan_rpm Infiniband switch fan RPM
+		# TYPE infiniband_switch_fan_rpm gauge
+		infiniband_switch_fan_rpm{fan="1",guid="0x506b4b03005c2740"} 6125
+		infiniband_switch_fan_rpm{fan="1",guid="0x7cfe9003009ce5b0"} 8493
+		infiniband_switch_fan_rpm{fan="2",guid="0x506b4b03005c2740"} 5251
+		infiniband_switch_fan_rpm{fan="2",guid="0x7cfe9003009ce5b0"} 7349
+		infiniband_switch_fan_rpm{fan="3",guid="0x506b4b03005c2740"} 6013
+		infiniband_switch_fan_rpm{fan="3",guid="0x7cfe9003009ce5b0"} 8441
+		infiniband_switch_fan_rpm{fan="4",guid="0x506b4b03005c2740"} 5335
+		infiniband_switch_fan_rpm{fan="4",guid="0x7cfe9003009ce5b0"} 7270
+		infiniband_switch_fan_rpm{fan="5",guid="0x506b4b03005c2740"} 6068
+		infiniband_switch_fan_rpm{fan="5",guid="0x7cfe9003009ce5b0"} 8337
+		infiniband_switch_fan_rpm{fan="6",guid="0x506b4b03005c2740"} 5423
+		infiniband_switch_fan_rpm{fan="6",guid="0x7cfe9003009ce5b0"} 7156
+		infiniband_switch_fan_rpm{fan="7",guid="0x506b4b03005c2740"} 5854
+		infiniband_switch_fan_rpm{fan="7",guid="0x7cfe9003009ce5b0"} 8441
+		infiniband_switch_fan_rpm{fan="8",guid="0x506b4b03005c2740"} 5467
+		infiniband_switch_fan_rpm{fan="8",guid="0x7cfe9003009ce5b0"} 7232
+		infiniband_switch_fan_rpm{fan="9",guid="0x506b4b03005c2740"} 5906
+		# HELP infiniband_switch_fan_status Infiniband switch fan status
+		# TYPE infiniband_switch_fan_status gauge
+		infiniband_switch_fan_status{guid="0x506b4b03005c2740",status="OK"} 1
+		infiniband_switch_fan_status{guid="0x7cfe9003009ce5b0",status="OK"} 1
 		# HELP infiniband_switch_info Infiniband switch information
 		# TYPE infiniband_switch_info gauge
 		infiniband_switch_info{guid="0x506b4b03005c2740",lid="2052",switch="ib-i4l1s01"} 1
@@ -358,10 +467,38 @@ func TestSwitchCollectorFull(t *testing.T) {
 		infiniband_switch_port_vl15_dropped_total{guid="0x506b4b03005c2740",port="1"} 0
 		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="1"} 0
 		infiniband_switch_port_vl15_dropped_total{guid="0x7cfe9003009ce5b0",port="2"} 0
+		# HELP infiniband_switch_power_supply_fan_status_info Infiniband switch power supply fan status
+		# TYPE infiniband_switch_power_supply_fan_status_info gauge
+		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+		# HELP infiniband_switch_power_supply_dc_power_status_info Infiniband switch power supply DC power status
+		# TYPE infiniband_switch_power_supply_dc_power_status_info gauge
+		infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+		infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+		# HELP infiniband_switch_power_supply_status_info Infiniband switch power supply status
+		# TYPE infiniband_switch_power_supply_status_info gauge
+		infiniband_switch_power_supply_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+		infiniband_switch_power_supply_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+		# HELP infiniband_switch_power_supply_watts Infiniband switch power supply watts
+		# TYPE infiniband_switch_power_supply_watts gauge
+		infiniband_switch_power_supply_watts{guid="0x506b4b03005c2740",psu="0"} 154
+		infiniband_switch_power_supply_watts{guid="0x506b4b03005c2740",psu="1"} 134
+		infiniband_switch_power_supply_watts{guid="0x7cfe9003009ce5b0",psu="0"} 72
+		infiniband_switch_power_supply_watts{guid="0x7cfe9003009ce5b0",psu="1"} 71
 		# HELP infiniband_switch_rate_bytes_per_second Infiniband switch rate
 		# TYPE infiniband_switch_rate_bytes_per_second gauge
 		infiniband_switch_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.25e+10
 		infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
+		# HELP infiniband_switch_temperature_celsius Infiniband switch temperature celsius
+		# TYPE infiniband_switch_temperature_celsius gauge
+		infiniband_switch_temperature_celsius{guid="0x506b4b03005c2740"} 53
+		infiniband_switch_temperature_celsius{guid="0x7cfe9003009ce5b0"} 45
 		# HELP infiniband_switch_uplink_info Infiniband switch uplink information
 		# TYPE infiniband_switch_uplink_info gauge
 		infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
@@ -373,8 +510,8 @@ func TestSwitchCollectorFull(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 95 {
-		t.Errorf("Unexpected collection count %d, expected 95", val)
+	} else if val != 132 {
+		t.Errorf("Unexpected collection count %d, expected 132", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -392,6 +529,9 @@ func TestSwitchCollectorFull(t *testing.T) {
 		"infiniband_switch_port_local_physical_errors_total", "infiniband_switch_port_looping_errors_total",
 		"infiniband_switch_port_malformed_packet_errors_total", "infiniband_switch_port_vl_mapping_errors_total",
 		"infiniband_switch_info", "infiniband_switch_rate_bytes_per_second", "infiniband_switch_uplink_info",
+		"infiniband_switch_power_supply_status_info", "infiniband_switch_power_supply_dc_power_status_info",
+		"infiniband_switch_power_supply_fan_status_info", "infiniband_switch_power_supply_watts",
+		"infiniband_switch_temperature_celsius", "infiniband_switch_fan_status", "infiniband_switch_fan_rpm",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
@@ -469,19 +609,33 @@ func TestSwitchCollectorNoBase(t *testing.T) {
 }
 
 func TestSwitchCollectorError(t *testing.T) {
-	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.ibswinfo"}); err != nil {
 		t.Fatal(err)
 	}
 	SetPerfqueryExecs(t, true, false)
+	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		var out string
+		var err error
+		if lid == "1719" {
+			out, _ = ReadFixture("ibswinfo", "test-err1")
+			err = nil
+		} else if lid == "2052" {
+			out = ""
+			err = fmt.Errorf("Error")
+		}
+		return out, err
+	}
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
-		infiniband_exporter_collect_errors{collector="switch"} 2
+		infiniband_exporter_collect_errors{collector="switch"} 4
 		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
 	`
-	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	collector := NewSwitchCollector(&switchDevices, false, logger)
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -491,6 +645,7 @@ func TestSwitchCollectorError(t *testing.T) {
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
 		"infiniband_switch_port_link_error_recovery_total", "infiniband_switch_port_local_link_integrity_errors_total",
+		"infiniband_switch_power_supply_status_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
@@ -525,17 +680,20 @@ func TestSwitchCollectorErrorRunonce(t *testing.T) {
 }
 
 func TestSwitchCollectorTimeout(t *testing.T) {
-	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.ibswinfo"}); err != nil {
 		t.Fatal(err)
 	}
 	SetPerfqueryExecs(t, false, true)
+	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		return "", context.DeadlineExceeded
+	}
 	expected := `
 		# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 		# TYPE infiniband_exporter_collect_errors gauge
 		infiniband_exporter_collect_errors{collector="switch"} 0
 		# HELP infiniband_exporter_collect_timeouts Number of timeouts that occurred during collection
 		# TYPE infiniband_exporter_collect_timeouts gauge
-		infiniband_exporter_collect_timeouts{collector="switch"} 2
+		infiniband_exporter_collect_timeouts{collector="switch"} 4
 	`
 	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
@@ -547,7 +705,56 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
 		"infiniband_switch_port_link_error_recovery_total", "infiniband_switch_port_local_link_integrity_errors_total",
+		"infiniband_switch_power_supply_status_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestIBSWInfo(t *testing.T) {
+	execCommand = fakeExecCommand
+	mockedExitStatus = 0
+	mockedStdout = "foo"
+	defer func() { execCommand = exec.CommandContext }()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := ibswinfo("1", ctx)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+	}
+	if out != mockedStdout {
+		t.Errorf("Unexpected out: %s", out)
+	}
+}
+
+func TestIBSWInfoError(t *testing.T) {
+	execCommand = fakeExecCommand
+	mockedExitStatus = 1
+	mockedStdout = "foo"
+	defer func() { execCommand = exec.CommandContext }()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := ibswinfo("1", ctx)
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+	if out != "" {
+		t.Errorf("Unexpected out: %s", out)
+	}
+}
+
+func TestIBSWInfoTimeout(t *testing.T) {
+	execCommand = fakeExecCommand
+	mockedExitStatus = 1
+	mockedStdout = "foo"
+	defer func() { execCommand = exec.CommandContext }()
+	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Second)
+	defer cancel()
+	out, err := ibswinfo("1", ctx)
+	if err != context.DeadlineExceeded {
+		t.Errorf("Expected DeadlineExceeded")
+	}
+	if out != "" {
+		t.Errorf("Unexpected out: %s", out)
 	}
 }

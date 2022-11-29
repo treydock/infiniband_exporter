@@ -45,6 +45,15 @@ infiniband_exporter ALL=(ALL) NOPASSWD: /usr/sbin/perfquery
 
 If `ibnetdiscover` and `perfquery` are not in PATH then their paths need to be provided via the `--ibnetdiscover.path` and `--perfquery.path` flags.
 
+### Collect switch information using ibswinfo (BETA)
+
+The tool [ibswinfo](https://github.com/stanford-rc/ibswinfo) can be used to collect information from unmanaged InfiniBand switches such as power supply and fan health.  To enable this collection pass the `--collector.switch.ibswinfo` flag and ensure either `ibswinfo` is in $PATH or define the path to that executable via the `--ibswinfo.path` flag.
+
+The `ibswinfo` collection will only occur if also collecting switch counters.
+
+This feature is considered BETA as it relies on parsing non-machine readable data.
+In the future this exporter may collect the unmanaged switch information directly in a similar way to what ibswinfo is doing.
+
 ### Large fabric considerations
 
 If you have a large fabric where collection times are too long for Prometheus scrapes, the exporter can instead write metrics to a file that can be collected by node_exporter textfile collection.

@@ -14,8 +14,12 @@
 package collectors
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"math"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,13 +27,17 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
 	CollectSwitch       = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
 	switchCollectBase   = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
 	switchCollectRcvErr = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
+	collectIBSWInfo     = kingpin.Flag("collector.switch.ibswinfo", "Enable switch data collection using ibswinfo").Default("false").Bool()
+	ibswinfoPath        = kingpin.Flag("ibswinfo.path", "Path to ibswinfo").Default("ibswinfo").String()
+	ibswinfoTimeout     = kingpin.Flag("ibswinfo.timeout", "Timeout for ibswinfo execution").Default("10s").Duration()
+	ibswinfoExec        = ibswinfo
 )
 
 type SwitchCollector struct {
@@ -67,6 +75,34 @@ type SwitchCollector struct {
 	Rate                         *prometheus.Desc
 	Uplink                       *prometheus.Desc
 	Info                         *prometheus.Desc
+	PowerSupplyStatus            *prometheus.Desc
+	PowerSupplyDCPower           *prometheus.Desc
+	PowerSupplyFanStatus         *prometheus.Desc
+	PowerSupplyWatts             *prometheus.Desc
+	Temp                         *prometheus.Desc
+	FanStatus                    *prometheus.Desc
+	FanRPM                       *prometheus.Desc
+}
+
+type IBSWInfo struct {
+	device        InfinibandDevice
+	PowerSupplies []SwitchPowerSupply
+	Temp          float64
+	FanStatus     string
+	Fans          []SwitchFan
+}
+
+type SwitchPowerSupply struct {
+	ID        string
+	Status    string
+	DCPower   string
+	FanStatus string
+	PowerW    float64
+}
+
+type SwitchFan struct {
+	ID  string
+	RPM float64
 }
 
 func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Logger) *SwitchCollector {
@@ -141,6 +177,20 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 			"Infiniband switch uplink information", append(labels, []string{"switch", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "info"),
 			"Infiniband switch information", []string{"guid", "switch", "lid"}, nil),
+		PowerSupplyStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_status_info"),
+			"Infiniband switch power supply status", []string{"guid", "psu", "status"}, nil),
+		PowerSupplyDCPower: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_dc_power_status_info"),
+			"Infiniband switch power supply DC power status", []string{"guid", "psu", "status"}, nil),
+		PowerSupplyFanStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_fan_status_info"),
+			"Infiniband switch power supply fan status", []string{"guid", "psu", "status"}, nil),
+		PowerSupplyWatts: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_watts"),
+			"Infiniband switch power supply watts", []string{"guid", "psu"}, nil),
+		Temp: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "temperature_celsius"),
+			"Infiniband switch temperature celsius", []string{"guid"}, nil),
+		FanStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "fan_status"),
+			"Infiniband switch fan status", []string{"guid", "status"}, nil),
+		FanRPM: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "fan_rpm"),
+			"Infiniband switch fan RPM", []string{"guid", "fan"}, nil),
 	}
 }
 
@@ -176,11 +226,18 @@ func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- s.Rate
 	ch <- s.Uplink
 	ch <- s.Info
+	ch <- s.PowerSupplyStatus
+	ch <- s.PowerSupplyDCPower
+	ch <- s.PowerSupplyFanStatus
+	ch <- s.PowerSupplyWatts
+	ch <- s.Temp
+	ch <- s.FanStatus
+	ch <- s.FanRPM
 }
 
 func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
-	counters, errors, timeouts := s.collect()
+	counters, swinfos, errors, timeouts := s.collect()
 	for _, c := range counters {
 		if !math.IsNaN(c.PortXmitData) {
 			ch <- prometheus.MustNewConstMetric(s.PortXmitData, prometheus.CounterValue, c.PortXmitData, c.device.GUID, c.PortSelect)
@@ -276,6 +333,21 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 	}
+	if *collectIBSWInfo {
+		for _, swinfo := range swinfos {
+			for _, psu := range swinfo.PowerSupplies {
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyDCPower, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.DCPower)
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyFanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.FanStatus)
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyWatts, prometheus.GaugeValue, psu.PowerW, swinfo.device.GUID, psu.ID)
+			}
+			ch <- prometheus.MustNewConstMetric(s.Temp, prometheus.GaugeValue, swinfo.Temp, swinfo.device.GUID)
+			ch <- prometheus.MustNewConstMetric(s.FanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, swinfo.FanStatus)
+			for _, fan := range swinfo.Fans {
+				ch <- prometheus.MustNewConstMetric(s.FanRPM, prometheus.GaugeValue, fan.RPM, swinfo.device.GUID, fan.ID)
+			}
+		}
+	}
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, s.collector)
 	ch <- prometheus.MustNewConstMetric(collecTimeouts, prometheus.GaugeValue, timeouts, s.collector)
 	ch <- prometheus.MustNewConstMetric(collectDuration, prometheus.GaugeValue, time.Since(collectTime).Seconds(), s.collector)
@@ -284,9 +356,11 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
+func (s *SwitchCollector) collect() ([]PerfQueryCounters, []IBSWInfo, float64, float64) {
 	var counters []PerfQueryCounters
+	var ibswinfos []IBSWInfo
 	var countersLock sync.Mutex
+	var ibswinfosLock sync.Mutex
 	var errors, timeouts float64
 	limit := make(chan int, *maxConcurrent)
 	wg := &sync.WaitGroup{}
@@ -299,45 +373,65 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 			defer cancelExtended()
 			ports := getDevicePorts(device.Uplinks)
 			perfqueryPorts := strings.Join(ports, ",")
-			extendedOut, err := PerfqueryExec(device.GUID, perfqueryPorts, []string{"-l", "-x"}, ctxExtended)
-			if err == context.DeadlineExceeded {
+			extendedOut, extendedErr := PerfqueryExec(device.GUID, perfqueryPorts, []string{"-l", "-x"}, ctxExtended)
+			if extendedErr == context.DeadlineExceeded {
 				level.Error(s.logger).Log("msg", "Timeout collecting extended perfquery counters", "guid", device.GUID)
 				timeouts++
-			} else if err != nil {
+			} else if extendedErr != nil {
 				level.Error(s.logger).Log("msg", "Error collecting extended perfquery counters", "guid", device.GUID)
 				errors++
 			}
-			if err != nil {
-				<-limit
-				return
-			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, s.logger)
 			errors = errors + errs
-			if *switchCollectBase {
+			if *switchCollectBase && extendedErr == nil {
 				level.Debug(s.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
 				countersLock.Lock()
 				counters = append(counters, deviceCounters...)
 				countersLock.Unlock()
 			}
-			if *switchCollectRcvErr {
+			if *switchCollectRcvErr && extendedErr == nil {
 				for _, deviceCounter := range deviceCounters {
 					ctxRcvErr, cancelRcvErr := context.WithTimeout(context.Background(), *perfqueryTimeout)
 					defer cancelRcvErr()
-					rcvErrOut, err := PerfqueryExec(device.GUID, deviceCounter.PortSelect, []string{"-E"}, ctxRcvErr)
-					if err == context.DeadlineExceeded {
+					rcvErrOut, rcvErrErr := PerfqueryExec(device.GUID, deviceCounter.PortSelect, []string{"-E"}, ctxRcvErr)
+					if rcvErrErr == context.DeadlineExceeded {
 						level.Error(s.logger).Log("msg", "Timeout collecting rcvErr perfquery counters", "guid", device.GUID)
 						timeouts++
-						continue
-					} else if err != nil {
+					} else if rcvErrErr != nil {
 						level.Error(s.logger).Log("msg", "Error collecting rcvErr perfquery counters", "guid", device.GUID)
 						errors++
-						continue
 					}
-					rcvErrCounters, errs := perfqueryParse(device, rcvErrOut, s.logger)
-					errors = errors + errs
-					countersLock.Lock()
-					counters = append(counters, rcvErrCounters...)
-					countersLock.Unlock()
+					if rcvErrErr == nil {
+						rcvErrCounters, errs := perfqueryParse(device, rcvErrOut, s.logger)
+						errors = errors + errs
+						countersLock.Lock()
+						counters = append(counters, rcvErrCounters...)
+						countersLock.Unlock()
+					}
+				}
+			}
+			if *collectIBSWInfo {
+				ctxibswinfo, cancelibswinfo := context.WithTimeout(context.Background(), *ibswinfoTimeout)
+				defer cancelibswinfo()
+				ibswinfoOut, ibswinfoErr := ibswinfoExec(device.LID, ctxibswinfo)
+				if ibswinfoErr == context.DeadlineExceeded {
+					level.Error(s.logger).Log("msg", "Timeout collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
+					timeouts++
+				} else if ibswinfoErr != nil {
+					level.Error(s.logger).Log("msg", "Error collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
+					errors++
+				}
+				if ibswinfoErr == nil {
+					ibswinfoData, err := parse_ibswinfo(ibswinfoOut, s.logger)
+					if err != nil {
+						level.Error(s.logger).Log("msg", "Error parsing ibswinfo output", "guid", device.GUID, "lid", device.LID)
+						errors++
+					} else {
+						ibswinfoData.device = device
+						ibswinfosLock.Lock()
+						ibswinfos = append(ibswinfos, ibswinfoData)
+						ibswinfosLock.Unlock()
+					}
 				}
 			}
 			<-limit
@@ -345,5 +439,100 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 	}
 	wg.Wait()
 	close(limit)
-	return counters, errors, timeouts
+	return counters, ibswinfos, errors, timeouts
+}
+
+func ibswinfo(lid string, ctx context.Context) (string, error) {
+	args := []string{"-d", fmt.Sprintf("lid-%s", lid)}
+	cmd := execCommand(ctx, *ibswinfoPath, args...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if ctx.Err() == context.DeadlineExceeded {
+		return "", ctx.Err()
+	} else if err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
+
+func parse_ibswinfo(out string, logger log.Logger) (IBSWInfo, error) {
+	var data IBSWInfo
+	lines := strings.Split(out, "\n")
+	psus := make(map[string]SwitchPowerSupply)
+	var powerSupplies []SwitchPowerSupply
+	var fans []SwitchFan
+	var psuID string
+	rePSU := regexp.MustCompile(`PSU([0-9]) status`)
+	reFan := regexp.MustCompile(`fan#([0-9]+)`)
+	for _, line := range lines {
+		l := strings.Split(line, "|")
+		if len(l) != 2 {
+			continue
+		}
+		key := strings.TrimSpace(l[0])
+		value := strings.TrimSpace(l[1])
+		matchesPSU := rePSU.FindStringSubmatch(key)
+		var psu SwitchPowerSupply
+		if psuID != "" {
+			if p, ok := psus[psuID]; ok {
+				psu = p
+			}
+		}
+		if len(matchesPSU) == 2 {
+			psuID = matchesPSU[1]
+			psu.Status = value
+		}
+		if key == "DC power" {
+			psu.DCPower = value
+		}
+		if key == "fan status" {
+			psu.FanStatus = value
+		}
+		if key == "power (W)" {
+			powerW, err := strconv.ParseFloat(value, 64)
+			if err == nil {
+				psu.PowerW = powerW
+			} else {
+				level.Error(logger).Log("msg", "Unable to parse power (W)", "err", err, "value", value)
+				return IBSWInfo{}, err
+			}
+		}
+		if psuID != "" {
+			psus[psuID] = psu
+		}
+		if key == "temperature (C)" {
+			temp, err := strconv.ParseFloat(value, 64)
+			if err == nil {
+				data.Temp = temp
+			} else {
+				level.Error(logger).Log("msg", "Unable to parse temperature (C)", "err", err, "value", value)
+				return IBSWInfo{}, err
+			}
+		}
+		if key == "fan status" {
+			data.FanStatus = value
+		}
+		matchesFan := reFan.FindStringSubmatch(key)
+		if len(matchesFan) == 2 {
+			rpm, err := strconv.ParseFloat(value, 64)
+			if err == nil {
+				fan := SwitchFan{
+					ID:  matchesFan[1],
+					RPM: rpm,
+				}
+				fans = append(fans, fan)
+			} else {
+				level.Error(logger).Log("msg", "Unable to parse fan RPM", "err", err, "value", value)
+				return IBSWInfo{}, err
+			}
+		}
+	}
+	for id, psu := range psus {
+		psu.ID = id
+		powerSupplies = append(powerSupplies, psu)
+	}
+	data.PowerSupplies = powerSupplies
+	data.Fans = fans
+	return data, nil
 }
