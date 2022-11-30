@@ -22,7 +22,7 @@ Collectors are enabled or disabled via `--collector.<name>` and `--no-collector.
 Name | Description | Default
 -----|-------------|--------
 switch | Collect switch port counters | Enabled
-ibswinfo | Collect data on unmanaged switches via ibswinfo | Disabled
+ibswinfo | Collect data on unmanaged switches via ibswinfo (BETA) | Disabled
 hca | Collect HCA port counters | Disabled
 
 If you have a node name map file typically used with Subnet Managers, you can provide that file to the  `--ibnetdiscover.node-name-map` flag.  This will use friendly names for switches.
