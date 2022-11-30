@@ -23,7 +23,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -299,41 +299,45 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 			defer cancelExtended()
 			ports := getDevicePorts(device.Uplinks)
 			perfqueryPorts := strings.Join(ports, ",")
-			extendedOut, extendedErr := PerfqueryExec(device.GUID, perfqueryPorts, []string{"-l", "-x"}, ctxExtended)
-			if extendedErr == context.DeadlineExceeded {
+			extendedOut, err := PerfqueryExec(device.GUID, perfqueryPorts, []string{"-l", "-x"}, ctxExtended)
+			if err == context.DeadlineExceeded {
 				level.Error(s.logger).Log("msg", "Timeout collecting extended perfquery counters", "guid", device.GUID)
 				timeouts++
-			} else if extendedErr != nil {
+			} else if err != nil {
 				level.Error(s.logger).Log("msg", "Error collecting extended perfquery counters", "guid", device.GUID)
 				errors++
 			}
+			if err != nil {
+				<-limit
+				return
+			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, s.logger)
 			errors = errors + errs
-			if *switchCollectBase && extendedErr == nil {
+			if *switchCollectBase {
 				level.Debug(s.logger).Log("msg", "Adding parsed counters", "count", len(deviceCounters), "guid", device.GUID, "name", device.Name)
 				countersLock.Lock()
 				counters = append(counters, deviceCounters...)
 				countersLock.Unlock()
 			}
-			if *switchCollectRcvErr && extendedErr == nil {
+			if *switchCollectRcvErr {
 				for _, deviceCounter := range deviceCounters {
 					ctxRcvErr, cancelRcvErr := context.WithTimeout(context.Background(), *perfqueryTimeout)
 					defer cancelRcvErr()
-					rcvErrOut, rcvErrErr := PerfqueryExec(device.GUID, deviceCounter.PortSelect, []string{"-E"}, ctxRcvErr)
-					if rcvErrErr == context.DeadlineExceeded {
+					rcvErrOut, err := PerfqueryExec(device.GUID, deviceCounter.PortSelect, []string{"-E"}, ctxRcvErr)
+					if err == context.DeadlineExceeded {
 						level.Error(s.logger).Log("msg", "Timeout collecting rcvErr perfquery counters", "guid", device.GUID)
 						timeouts++
-					} else if rcvErrErr != nil {
+						continue
+					} else if err != nil {
 						level.Error(s.logger).Log("msg", "Error collecting rcvErr perfquery counters", "guid", device.GUID)
 						errors++
+						continue
 					}
-					if rcvErrErr == nil {
-						rcvErrCounters, errs := perfqueryParse(device, rcvErrOut, s.logger)
-						errors = errors + errs
-						countersLock.Lock()
-						counters = append(counters, rcvErrCounters...)
-						countersLock.Unlock()
-					}
+					rcvErrCounters, errs := perfqueryParse(device, rcvErrOut, s.logger)
+					errors = errors + errs
+					countersLock.Lock()
+					counters = append(counters, rcvErrCounters...)
+					countersLock.Unlock()
 				}
 			}
 			<-limit
