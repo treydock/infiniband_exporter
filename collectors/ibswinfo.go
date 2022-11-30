@@ -30,11 +30,11 @@ import (
 )
 
 var (
-	CollectIbswinfo       = kingpin.Flag("collector.switch.ibswinfo", "Enable switch data collection using ibswinfo").Default("false").Bool()
+	CollectIbswinfo       = kingpin.Flag("collector.ibswinfo", "Enable ibswinfo data collection").Default("false").Bool()
 	ibswinfoPath          = kingpin.Flag("ibswinfo.path", "Path to ibswinfo").Default("ibswinfo").String()
 	ibswinfoTimeout       = kingpin.Flag("ibswinfo.timeout", "Timeout for ibswinfo execution").Default("10s").Duration()
 	ibswinfoMaxConcurrent = kingpin.Flag("ibswinfo.max-concurrent", "Max number of concurrent ibswinfo executions").Default("1").Int()
-	ibswinfoExec          = ibswinfo
+	IbswinfoExec          = ibswinfo
 )
 
 type IbswinfoCollector struct {
@@ -144,7 +144,7 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 			defer wg.Done()
 			ctxibswinfo, cancelibswinfo := context.WithTimeout(context.Background(), *ibswinfoTimeout)
 			defer cancelibswinfo()
-			ibswinfoOut, ibswinfoErr := ibswinfoExec(device.LID, ctxibswinfo)
+			ibswinfoOut, ibswinfoErr := IbswinfoExec(device.LID, ctxibswinfo)
 			if ibswinfoErr == context.DeadlineExceeded {
 				level.Error(s.logger).Log("msg", "Timeout collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
 				timeouts++

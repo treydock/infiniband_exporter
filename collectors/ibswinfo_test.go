@@ -101,7 +101,7 @@ func TestIbswinfoCollector(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
 		if lid == "1719" {
 			out, err := ReadFixture("ibswinfo", "test1")
 			return out, err
@@ -142,18 +142,18 @@ func TestIbswinfoCollector(t *testing.T) {
 		# TYPE infiniband_switch_fan_status gauge
 		infiniband_switch_fan_status{guid="0x506b4b03005c2740",status="OK"} 1
 		infiniband_switch_fan_status{guid="0x7cfe9003009ce5b0",status="OK"} 1
-		# HELP infiniband_switch_power_supply_fan_status_info Infiniband switch power supply fan status
-		# TYPE infiniband_switch_power_supply_fan_status_info gauge
-		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
-		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
-		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
-		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
 		# HELP infiniband_switch_power_supply_dc_power_status_info Infiniband switch power supply DC power status
 		# TYPE infiniband_switch_power_supply_dc_power_status_info gauge
 		infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
 		infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
 		infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
 		infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+		# HELP infiniband_switch_power_supply_fan_status_info Infiniband switch power supply fan status
+		# TYPE infiniband_switch_power_supply_fan_status_info gauge
+		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+		infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
 		# HELP infiniband_switch_power_supply_status_info Infiniband switch power supply status
 		# TYPE infiniband_switch_power_supply_status_info gauge
 		infiniband_switch_power_supply_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
@@ -191,7 +191,7 @@ func TestIbswinfoCollectorError(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
 		var out string
 		var err error
 		if lid == "1719" {
@@ -231,7 +231,7 @@ func TestIbswinfoCollectorErrorRunonce(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
 		var out string
 		var err error
 		if lid == "1719" {
@@ -269,7 +269,7 @@ func TestIbswinfoCollectorTimeout(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
 	}
-	ibswinfoExec = func(lid string, ctx context.Context) (string, error) {
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
 		return "", context.DeadlineExceeded
 	}
 	expected := `

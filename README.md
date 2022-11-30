@@ -48,7 +48,7 @@ If `ibnetdiscover` and `perfquery` are not in PATH then their paths need to be p
 
 ### Collect switch information using ibswinfo (BETA)
 
-The tool [ibswinfo](https://github.com/stanford-rc/ibswinfo) can be used to collect information from unmanaged InfiniBand switches such as power supply and fan health.  To enable this collection pass the `--collector.switch.ibswinfo` flag and ensure either `ibswinfo` is in $PATH or define the path to that executable via the `--ibswinfo.path` flag.
+The tool [ibswinfo](https://github.com/stanford-rc/ibswinfo) can be used to collect information from unmanaged InfiniBand switches such as power supply and fan health.  To enable this collection pass the `--collector.ibswinfo` flag and ensure either `ibswinfo` is in $PATH or define the path to that executable via the `--ibswinfo.path` flag.
 
 This feature is considered BETA as it relies on parsing non-machine readable data.
 In the future this exporter may collect the unmanaged switch information directly in a similar way to what ibswinfo is doing.
