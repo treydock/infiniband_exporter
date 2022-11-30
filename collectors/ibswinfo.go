@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	CollectIbswinfo       = kingpin.Flag("collector.ibswinfo", "Enable ibswinfo data collection").Default("false").Bool()
+	CollectIbswinfo       = kingpin.Flag("collector.ibswinfo", "Enable ibswinfo data collection (BETA)").Default("false").Bool()
 	ibswinfoPath          = kingpin.Flag("ibswinfo.path", "Path to ibswinfo").Default("ibswinfo").String()
 	ibswinfoTimeout       = kingpin.Flag("ibswinfo.timeout", "Timeout for ibswinfo execution").Default("10s").Duration()
 	ibswinfoMaxConcurrent = kingpin.Flag("ibswinfo.max-concurrent", "Max number of concurrent ibswinfo executions").Default("1").Int()
