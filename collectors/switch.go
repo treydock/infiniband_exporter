@@ -418,7 +418,7 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, []IBSWInfo, float64, f
 					level.Error(s.logger).Log("msg", "Timeout collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
 					timeouts++
 				} else if ibswinfoErr != nil {
-					level.Error(s.logger).Log("msg", "Error collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
+					level.Error(s.logger).Log("msg", "Error collecting ibswinfo data", "err", fmt.Sprintf("%s:%s", ibswinfoErr, ibswinfoOut), "guid", device.GUID, "lid", device.LID)
 					errors++
 				}
 				if ibswinfoErr == nil {
@@ -445,15 +445,16 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, []IBSWInfo, float64, f
 func ibswinfo(lid string, ctx context.Context) (string, error) {
 	args := []string{"-d", fmt.Sprintf("lid-%s", lid)}
 	cmd := execCommand(ctx, *ibswinfoPath, args...)
-	var out bytes.Buffer
-	cmd.Stdout = &out
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if ctx.Err() == context.DeadlineExceeded {
 		return "", ctx.Err()
 	} else if err != nil {
-		return "", err
+		return stderr.String(), err
 	}
-	return out.String(), nil
+	return stdout.String(), nil
 }
 
 func parse_ibswinfo(out string, logger log.Logger) (IBSWInfo, error) {
