@@ -14,7 +14,6 @@
 package collectors
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -465,9 +464,7 @@ func TestSwitchCollectorError(t *testing.T) {
 		# TYPE infiniband_exporter_collect_timeouts gauge
 		infiniband_exporter_collect_timeouts{collector="switch"} 0
 	`
-	w := log.NewSyncWriter(os.Stderr)
-	logger := log.NewLogfmtLogger(w)
-	collector := NewSwitchCollector(&switchDevices, false, logger)
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
