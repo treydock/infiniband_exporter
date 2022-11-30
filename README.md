@@ -53,6 +53,8 @@ The tool [ibswinfo](https://github.com/stanford-rc/ibswinfo) can be used to coll
 This feature is considered BETA as it relies on parsing non-machine readable data.
 In the future this exporter may collect the unmanaged switch information directly in a similar way to what ibswinfo is doing.
 
+The collection of `ibswinfo` takes about 2-3 seconds per switch so consider increasing Prometheus scrape timeout or running using `--exporter.runonce` per [Large fabric considerations](#large-fabric-considerations).  Also consider increasing the `--ibswinfo.max-concurrent` to a value greater than the default of 1, but be aware that a value too high will cause timeouts executing concurrent `ibswinfo` commands.
+
 ### Large fabric considerations
 
 If you have a large fabric where collection times are too long for Prometheus scrapes, the exporter can instead write metrics to a file that can be collected by node_exporter textfile collection.
