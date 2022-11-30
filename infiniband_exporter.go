@@ -56,6 +56,10 @@ func setupGathers(runonce bool, logger log.Logger) prometheus.Gatherer {
 			switchCollector := collectors.NewSwitchCollector(switches, runonce, logger)
 			registry.MustRegister(switchCollector)
 		}
+		if *collectors.CollectIbswinfo {
+			ibswinfoCollector := collectors.NewIbswinfoCollector(switches, runonce, logger)
+			registry.MustRegister(ibswinfoCollector)
+		}
 		if *collectors.CollectHCA {
 			hcaCollector := collectors.NewHCACollector(hcas, runonce, logger)
 			registry.MustRegister(hcaCollector)
