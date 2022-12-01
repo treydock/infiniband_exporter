@@ -28,7 +28,7 @@ PSU1 status        | OK
 temperature (C)    | 45
 max temp (C)       | 57
 -------------------------------------------------
-fan status         | OK
+fan status         | ERROR
 fan#1 (rpm)        | 8493
 fan#2 (rpm)        | 7349
 fan#3 (rpm)        | 8441

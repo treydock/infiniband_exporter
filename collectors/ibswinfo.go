@@ -41,6 +41,7 @@ type IbswinfoCollector struct {
 	devices              *[]InfinibandDevice
 	logger               log.Logger
 	collector            string
+	HardwareInfo         *prometheus.Desc
 	PowerSupplyStatus    *prometheus.Desc
 	PowerSupplyDCPower   *prometheus.Desc
 	PowerSupplyFanStatus *prometheus.Desc
@@ -51,11 +52,15 @@ type IbswinfoCollector struct {
 }
 
 type Ibswinfo struct {
-	device        InfinibandDevice
-	PowerSupplies []SwitchPowerSupply
-	Temp          float64
-	FanStatus     string
-	Fans          []SwitchFan
+	device          InfinibandDevice
+	PartNumber      string
+	SerialNumber    string
+	PSID            string
+	FirmwareVersion string
+	PowerSupplies   []SwitchPowerSupply
+	Temp            float64
+	FanStatus       string
+	Fans            []SwitchFan
 }
 
 type SwitchPowerSupply struct {
@@ -80,6 +85,8 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 		devices:   devices,
 		logger:    log.With(logger, "collector", collector),
 		collector: collector,
+		HardwareInfo: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "hardware_info"),
+			"Infiniband switch hardware info", []string{"guid", "firmware_version", "psid", "part_number", "serial_number"}, nil),
 		PowerSupplyStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_status_info"),
 			"Infiniband switch power supply status", []string{"guid", "psu", "status"}, nil),
 		PowerSupplyDCPower: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_dc_power_status_info"),
@@ -98,6 +105,7 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 }
 
 func (s *IbswinfoCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- s.HardwareInfo
 	ch <- s.PowerSupplyStatus
 	ch <- s.PowerSupplyDCPower
 	ch <- s.PowerSupplyFanStatus
@@ -111,6 +119,8 @@ func (s *IbswinfoCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
 	swinfos, errors, timeouts := s.collect()
 	for _, swinfo := range swinfos {
+		ch <- prometheus.MustNewConstMetric(s.HardwareInfo, prometheus.GaugeValue, 1, swinfo.device.GUID,
+			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber)
 		for _, psu := range swinfo.PowerSupplies {
 			ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
 			ch <- prometheus.MustNewConstMetric(s.PowerSupplyDCPower, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.DCPower)
@@ -203,6 +213,16 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 		}
 		key := strings.TrimSpace(l[0])
 		value := strings.TrimSpace(l[1])
+		switch key {
+		case "part number":
+			data.PartNumber = value
+		case "serial number":
+			data.SerialNumber = value
+		case "PSID":
+			data.PSID = value
+		case "firmware version":
+			data.FirmwareVersion = value
+		}
 		matchesPSU := rePSU.FindStringSubmatch(key)
 		var psu SwitchPowerSupply
 		if psuID != "" {
@@ -217,7 +237,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 		if key == "DC power" {
 			psu.DCPower = value
 		}
-		if key == "fan status" {
+		if psuID != "" && key == "fan status" {
 			psu.FanStatus = value
 		}
 		if key == "power (W)" {
@@ -232,6 +252,9 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 		if psuID != "" {
 			psus[psuID] = psu
 		}
+		if key == "power (W)" {
+			psuID = ""
+		}
 		if key == "temperature (C)" {
 			temp, err := strconv.ParseFloat(value, 64)
 			if err == nil {
@@ -241,7 +264,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				return Ibswinfo{}, err
 			}
 		}
-		if key == "fan status" {
+		if psuID == "" && key == "fan status" {
 			data.FanStatus = value
 		}
 		matchesFan := reFan.FindStringSubmatch(key)
