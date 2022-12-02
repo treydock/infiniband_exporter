@@ -147,6 +147,7 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 	var errors, timeouts float64
 	limit := make(chan int, *ibswinfoMaxConcurrent)
 	wg := &sync.WaitGroup{}
+	level.Debug(s.logger).Log("msg", "Collecting ibswinfo on devices", "count", len(*s.devices))
 	for _, device := range *s.devices {
 		limit <- 1
 		wg.Add(1)
@@ -154,6 +155,7 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 			defer wg.Done()
 			ctxibswinfo, cancelibswinfo := context.WithTimeout(context.Background(), *ibswinfoTimeout)
 			defer cancelibswinfo()
+			level.Debug(s.logger).Log("msg", "Run ibswinfo", "lid", device.LID)
 			ibswinfoOut, ibswinfoErr := IbswinfoExec(device.LID, ctxibswinfo)
 			if ibswinfoErr == context.DeadlineExceeded {
 				level.Error(s.logger).Log("msg", "Timeout collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
