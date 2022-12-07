@@ -1,3 +1,7 @@
+## 0.4.0 / 2022-12-07
+
+* Collect information from unmanaged switches using ibswinfo (BETA) (#9)
+
 ## 0.3.1 / 2022-08-24
 
 * Handle switches with split mode enabled (#8)
