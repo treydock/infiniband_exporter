@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -309,6 +310,32 @@ func TestIbswinfoCollectorTimeout(t *testing.T) {
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
+}
+
+func TestIbswinfoArgs(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+		t.Fatal(err)
+	}
+	trueValue := true
+	falseValue := false
+	command, args := ibswinfoArgs("100")
+	if command != "ibswinfo" {
+		t.Errorf("Unexpected command, got: %s", command)
+	}
+	expectedArgs := []string{"-d", "lid-100"}
+	if !reflect.DeepEqual(args, expectedArgs) {
+		t.Errorf("Unexpected args\nExpected\n%v\nGot\n%v", expectedArgs, args)
+	}
+	useSudo = &trueValue
+	command, args = ibswinfoArgs("100")
+	if command != "sudo" {
+		t.Errorf("Unexpected command, got: %s", command)
+	}
+	expectedArgs = []string{"ibswinfo", "-d", "lid-100"}
+	if !reflect.DeepEqual(args, expectedArgs) {
+		t.Errorf("Unexpected args\nExpected\n%v\nGot\n%v", expectedArgs, args)
+	}
+	useSudo = &falseValue
 }
 
 func TestIBSWInfo(t *testing.T) {

@@ -184,9 +184,22 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 	return ibswinfos, errors, timeouts
 }
 
+func ibswinfoArgs(lid string) (string, []string) {
+	var command string
+	var args []string
+	if *useSudo {
+		command = "sudo"
+		args = []string{*ibswinfoPath}
+	} else {
+		command = *ibswinfoPath
+	}
+	args = append(args, []string{"-d", fmt.Sprintf("lid-%s", lid)}...)
+	return command, args
+}
+
 func ibswinfo(lid string, ctx context.Context) (string, error) {
-	args := []string{"-d", fmt.Sprintf("lid-%s", lid)}
-	cmd := execCommand(ctx, *ibswinfoPath, args...)
+	command, args := ibswinfoArgs(lid)
+	cmd := execCommand(ctx, command, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
