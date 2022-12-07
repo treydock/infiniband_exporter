@@ -1,3 +1,8 @@
+## 0.4.2 / 2022-12-07
+
+* Rename infiniband_switch_fan_status to infiniband_switch_fan_status_info (#11)
+* Include switch name with infiniband_switch_hardware_info (#11)
+
 ## 0.4.1 / 2022-12-07
 
 * Ensure ibswinfo respects --sudo flag (#10)
