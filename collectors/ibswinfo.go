@@ -86,7 +86,7 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 		logger:    log.With(logger, "collector", collector),
 		collector: collector,
 		HardwareInfo: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "hardware_info"),
-			"Infiniband switch hardware info", []string{"guid", "firmware_version", "psid", "part_number", "serial_number"}, nil),
+			"Infiniband switch hardware info", []string{"guid", "firmware_version", "psid", "part_number", "serial_number", "switch"}, nil),
 		PowerSupplyStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_status_info"),
 			"Infiniband switch power supply status", []string{"guid", "psu", "status"}, nil),
 		PowerSupplyDCPower: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_dc_power_status_info"),
@@ -120,7 +120,7 @@ func (s *IbswinfoCollector) Collect(ch chan<- prometheus.Metric) {
 	swinfos, errors, timeouts := s.collect()
 	for _, swinfo := range swinfos {
 		ch <- prometheus.MustNewConstMetric(s.HardwareInfo, prometheus.GaugeValue, 1, swinfo.device.GUID,
-			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber)
+			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber, swinfo.device.Name)
 		for _, psu := range swinfo.PowerSupplies {
 			ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
 			ch <- prometheus.MustNewConstMetric(s.PowerSupplyDCPower, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.DCPower)
