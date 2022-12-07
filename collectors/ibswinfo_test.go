@@ -151,10 +151,10 @@ func TestIbswinfoCollector(t *testing.T) {
 		infiniband_switch_fan_rpm{fan="8",guid="0x506b4b03005c2740"} 5467
 		infiniband_switch_fan_rpm{fan="8",guid="0x7cfe9003009ce5b0"} 7232
 		infiniband_switch_fan_rpm{fan="9",guid="0x506b4b03005c2740"} 5906
-		# HELP infiniband_switch_fan_status Infiniband switch fan status
-		# TYPE infiniband_switch_fan_status gauge
-		infiniband_switch_fan_status{guid="0x506b4b03005c2740",status="OK"} 1
-		infiniband_switch_fan_status{guid="0x7cfe9003009ce5b0",status="ERROR"} 1
+		# HELP infiniband_switch_fan_status_info Infiniband switch fan status
+		# TYPE infiniband_switch_fan_status_info gauge
+		infiniband_switch_fan_status_info{guid="0x506b4b03005c2740",status="OK"} 1
+		infiniband_switch_fan_status_info{guid="0x7cfe9003009ce5b0",status="ERROR"} 1
 		# HELP infiniband_switch_hardware_info Infiniband switch hardware info
 		# TYPE infiniband_switch_hardware_info gauge
 		infiniband_switch_hardware_info{firmware_version="11.2008.2102",guid="0x7cfe9003009ce5b0",part_number="MSB7790-ES2F",psid="MT_1880110032",serial_number="MT1943X00498"} 1
@@ -198,7 +198,7 @@ func TestIbswinfoCollector(t *testing.T) {
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_power_supply_status_info", "infiniband_switch_power_supply_dc_power_status_info",
 		"infiniband_switch_power_supply_fan_status_info", "infiniband_switch_power_supply_watts",
-		"infiniband_switch_temperature_celsius", "infiniband_switch_fan_status", "infiniband_switch_fan_rpm",
+		"infiniband_switch_temperature_celsius", "infiniband_switch_fan_status_info", "infiniband_switch_fan_rpm",
 		"infiniband_switch_hardware_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)

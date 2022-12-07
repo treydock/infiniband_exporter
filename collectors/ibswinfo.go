@@ -97,7 +97,7 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 			"Infiniband switch power supply watts", []string{"guid", "psu"}, nil),
 		Temp: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "temperature_celsius"),
 			"Infiniband switch temperature celsius", []string{"guid"}, nil),
-		FanStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "fan_status"),
+		FanStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "fan_status_info"),
 			"Infiniband switch fan status", []string{"guid", "status"}, nil),
 		FanRPM: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "fan_rpm"),
 			"Infiniband switch fan RPM", []string{"guid", "fan"}, nil),
