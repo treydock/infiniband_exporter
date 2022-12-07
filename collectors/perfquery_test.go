@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (

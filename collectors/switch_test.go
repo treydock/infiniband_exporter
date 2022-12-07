@@ -19,24 +19,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus/testutil"
-	"gopkg.in/alecthomas/kingpin.v2"
-)
-
-var (
-	switchDevices = []InfinibandDevice{
-		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), Name: "ib-i4l1s01",
-			Uplinks: map[string]InfinibandUplink{
-				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
-			},
-		},
-		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), Name: "ib-i1l1s01",
-			Uplinks: map[string]InfinibandUplink{
-				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
-				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
-				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002"},
-			},
-		},
-	}
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 func TestSwitchCollector(t *testing.T) {

@@ -1,0 +1,41 @@
+=================================================
+Quantum Mellanox Technologies
+=================================================
+part number        | MQM8790-HS2F
+serial number      | MT2152T10239
+product name       | Jaguar Unmng IB 200
+revision           | AJ
+ports              | 40
+PSID               | MT_0000000063
+GUID               | 0x08c0eb0300d9f672
+firmware version   | 27.2010.3118
+-------------------------------------------------
+uptime (d-h:m:s)   | 96d-01:55:47
+-------------------------------------------------
+PSU0 status        | OK
+     P/N           | MTEF-PSF-AC-C
+     S/N           | MT2150T22468
+     DC power      | OK
+     fan status    | OK
+     power (W)     | 154
+PSU1 status        | OK
+     P/N           | MTEF-PSF-AC-C
+     S/N           | MT2150T22467
+     DC power      | OK
+     fan status    | OK
+     power (W)     | 134
+-------------------------------------------------
+temperature (C)    | 53
+max temp (C)       | 58
+-------------------------------------------------
+fan status         | OK
+fan#1 (rpm)        | 6125
+fan#2 (rpm)        | 5251
+fan#3 (rpm)        | 6013
+fan#4 (rpm)        | 5335
+fan#5 (rpm)        | 6068
+fan#6 (rpm)        | 5423
+fan#7 (rpm)        | 5854
+fan#8 (rpm)        | 5467
+fan#9 (rpm)        | 5906
+-------------------------------------------------

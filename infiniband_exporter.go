@@ -28,7 +28,7 @@ import (
 	"github.com/prometheus/common/promlog/flag"
 	"github.com/prometheus/common/version"
 	"github.com/treydock/infiniband_exporter/collectors"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -55,6 +55,10 @@ func setupGathers(runonce bool, logger log.Logger) prometheus.Gatherer {
 		if *collectors.CollectSwitch {
 			switchCollector := collectors.NewSwitchCollector(switches, runonce, logger)
 			registry.MustRegister(switchCollector)
+		}
+		if *collectors.CollectIbswinfo {
+			ibswinfoCollector := collectors.NewIbswinfoCollector(switches, runonce, logger)
+			registry.MustRegister(ibswinfoCollector)
 		}
 		if *collectors.CollectHCA {
 			hcaCollector := collectors.NewHCACollector(hcas, runonce, logger)

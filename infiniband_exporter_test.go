@@ -26,7 +26,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/treydock/infiniband_exporter/collectors"
-	"gopkg.in/alecthomas/kingpin.v2"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -159,6 +159,61 @@ infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l
 infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01",uplink="ib-i1l2s01",uplink_guid="0x7cfe900300b07320",uplink_lid="1516",uplink_port="1",uplink_type="SW"} 1
 infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
 infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1`
+	expectedIbswinfo = `# HELP infiniband_switch_fan_rpm Infiniband switch fan RPM
+# TYPE infiniband_switch_fan_rpm gauge
+infiniband_switch_fan_rpm{fan="1",guid="0x506b4b03005c2740"} 6125
+infiniband_switch_fan_rpm{fan="1",guid="0x7cfe9003009ce5b0"} 8493
+infiniband_switch_fan_rpm{fan="2",guid="0x506b4b03005c2740"} 5251
+infiniband_switch_fan_rpm{fan="2",guid="0x7cfe9003009ce5b0"} 7349
+infiniband_switch_fan_rpm{fan="3",guid="0x506b4b03005c2740"} 6013
+infiniband_switch_fan_rpm{fan="3",guid="0x7cfe9003009ce5b0"} 8441
+infiniband_switch_fan_rpm{fan="4",guid="0x506b4b03005c2740"} 5335
+infiniband_switch_fan_rpm{fan="4",guid="0x7cfe9003009ce5b0"} 7270
+infiniband_switch_fan_rpm{fan="5",guid="0x506b4b03005c2740"} 6068
+infiniband_switch_fan_rpm{fan="5",guid="0x7cfe9003009ce5b0"} 8337
+infiniband_switch_fan_rpm{fan="6",guid="0x506b4b03005c2740"} 5423
+infiniband_switch_fan_rpm{fan="6",guid="0x7cfe9003009ce5b0"} 7156
+infiniband_switch_fan_rpm{fan="7",guid="0x506b4b03005c2740"} 5854
+infiniband_switch_fan_rpm{fan="7",guid="0x7cfe9003009ce5b0"} 8441
+infiniband_switch_fan_rpm{fan="8",guid="0x506b4b03005c2740"} 5467
+infiniband_switch_fan_rpm{fan="8",guid="0x7cfe9003009ce5b0"} 7232
+infiniband_switch_fan_rpm{fan="9",guid="0x506b4b03005c2740"} 5906
+# HELP infiniband_switch_fan_status Infiniband switch fan status
+# TYPE infiniband_switch_fan_status gauge
+infiniband_switch_fan_status{guid="0x506b4b03005c2740",status="OK"} 1
+infiniband_switch_fan_status{guid="0x7cfe9003009ce5b0",status="ERROR"} 1
+# HELP infiniband_switch_hardware_info Infiniband switch hardware info
+# TYPE infiniband_switch_hardware_info gauge
+infiniband_switch_hardware_info{firmware_version="11.2008.2102",guid="0x7cfe9003009ce5b0",part_number="MSB7790-ES2F",psid="MT_1880110032",serial_number="MT1943X00498"} 1
+infiniband_switch_hardware_info{firmware_version="27.2010.3118",guid="0x506b4b03005c2740",part_number="MQM8790-HS2F",psid="MT_0000000063",serial_number="MT2152T10239"} 1
+# HELP infiniband_switch_power_supply_dc_power_status_info Infiniband switch power supply DC power status
+# TYPE infiniband_switch_power_supply_dc_power_status_info gauge
+infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+infiniband_switch_power_supply_dc_power_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+# HELP infiniband_switch_power_supply_fan_status_info Infiniband switch power supply fan status
+# TYPE infiniband_switch_power_supply_fan_status_info gauge
+infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+infiniband_switch_power_supply_fan_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+infiniband_switch_power_supply_fan_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+# HELP infiniband_switch_power_supply_status_info Infiniband switch power supply status
+# TYPE infiniband_switch_power_supply_status_info gauge
+infiniband_switch_power_supply_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
+infiniband_switch_power_supply_status_info{guid="0x506b4b03005c2740",psu="1",status="OK"} 1
+infiniband_switch_power_supply_status_info{guid="0x7cfe9003009ce5b0",psu="0",status="OK"} 1
+infiniband_switch_power_supply_status_info{guid="0x7cfe9003009ce5b0",psu="1",status="OK"} 1
+# HELP infiniband_switch_power_supply_watts Infiniband switch power supply watts
+# TYPE infiniband_switch_power_supply_watts gauge
+infiniband_switch_power_supply_watts{guid="0x506b4b03005c2740",psu="0"} 154
+infiniband_switch_power_supply_watts{guid="0x506b4b03005c2740",psu="1"} 134
+infiniband_switch_power_supply_watts{guid="0x7cfe9003009ce5b0",psu="0"} 72
+infiniband_switch_power_supply_watts{guid="0x7cfe9003009ce5b0",psu="1"} 71
+# HELP infiniband_switch_temperature_celsius Infiniband switch temperature celsius
+# TYPE infiniband_switch_temperature_celsius gauge
+infiniband_switch_temperature_celsius{guid="0x506b4b03005c2740"} 53
+infiniband_switch_temperature_celsius{guid="0x7cfe9003009ce5b0"} 45`
 	expectedHCA = `# HELP infiniband_hca_info Infiniband HCA information
 # TYPE infiniband_hca_info gauge
 infiniband_hca_info{guid="0x506b4b0300cc02a6",hca="p0001",lid="1432"} 1
@@ -307,6 +362,17 @@ func TestMain(m *testing.M) {
 		}
 		return out, nil
 	}
+	collectors.IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		if lid == "1719" {
+			out, err := collectors.ReadFixture("ibswinfo", "test1")
+			return out, err
+		} else if lid == "2052" {
+			out, err := collectors.ReadFixture("ibswinfo", "test2")
+			return out, err
+		} else {
+			return "", nil
+		}
+	}
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -365,6 +431,16 @@ func TestCollect(t *testing.T) {
 	expectedSwitchNoError = runonceRe.ReplaceAllString(expectedSwitchNoError, "")
 	if !strings.Contains(body, expectedSwitchNoError) {
 		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedSwitchNoError, body)
+	}
+	if _, err = kingpin.CommandLine.Parse([]string{"--no-collector.switch", "--collector.ibswinfo", fmt.Sprintf("--web.listen-address=%s", address)}); err != nil {
+		t.Fatal(err)
+	}
+	body, err = queryExporter(metricsEndpoint)
+	if err != nil {
+		t.Fatalf("Unexpected error GET %s: %s", metricsEndpoint, err.Error())
+	}
+	if !strings.Contains(body, expectedIbswinfo) {
+		t.Errorf("Unexpected body\nExpected:\n%s\nGot:\n%s\n", expectedIbswinfo, body)
 	}
 	if _, err = kingpin.CommandLine.Parse([]string{"--collector.hca", fmt.Sprintf("--web.listen-address=%s", address)}); err != nil {
 		t.Fatal(err)
