@@ -1,3 +1,7 @@
+## 0.4.1 / 2022-12-07
+
+* Ensure ibswinfo respects --sudo flag (#10)
+
 ## 0.4.0 / 2022-12-07
 
 * Collect information from unmanaged switches using ibswinfo (BETA) (#9)
