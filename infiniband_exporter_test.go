@@ -178,14 +178,14 @@ infiniband_switch_fan_rpm{fan="7",guid="0x7cfe9003009ce5b0"} 8441
 infiniband_switch_fan_rpm{fan="8",guid="0x506b4b03005c2740"} 5467
 infiniband_switch_fan_rpm{fan="8",guid="0x7cfe9003009ce5b0"} 7232
 infiniband_switch_fan_rpm{fan="9",guid="0x506b4b03005c2740"} 5906
-# HELP infiniband_switch_fan_status Infiniband switch fan status
-# TYPE infiniband_switch_fan_status gauge
-infiniband_switch_fan_status{guid="0x506b4b03005c2740",status="OK"} 1
-infiniband_switch_fan_status{guid="0x7cfe9003009ce5b0",status="ERROR"} 1
+# HELP infiniband_switch_fan_status_info Infiniband switch fan status
+# TYPE infiniband_switch_fan_status_info gauge
+infiniband_switch_fan_status_info{guid="0x506b4b03005c2740",status="OK"} 1
+infiniband_switch_fan_status_info{guid="0x7cfe9003009ce5b0",status="ERROR"} 1
 # HELP infiniband_switch_hardware_info Infiniband switch hardware info
 # TYPE infiniband_switch_hardware_info gauge
-infiniband_switch_hardware_info{firmware_version="11.2008.2102",guid="0x7cfe9003009ce5b0",part_number="MSB7790-ES2F",psid="MT_1880110032",serial_number="MT1943X00498"} 1
-infiniband_switch_hardware_info{firmware_version="27.2010.3118",guid="0x506b4b03005c2740",part_number="MQM8790-HS2F",psid="MT_0000000063",serial_number="MT2152T10239"} 1
+infiniband_switch_hardware_info{firmware_version="11.2008.2102",guid="0x7cfe9003009ce5b0",part_number="MSB7790-ES2F",psid="MT_1880110032",serial_number="MT1943X00498",switch="ib-i1l1s01"} 1
+infiniband_switch_hardware_info{firmware_version="27.2010.3118",guid="0x506b4b03005c2740",part_number="MQM8790-HS2F",psid="MT_0000000063",serial_number="MT2152T10239",switch="ib-i4l1s01"} 1
 # HELP infiniband_switch_power_supply_dc_power_status_info Infiniband switch power supply DC power status
 # TYPE infiniband_switch_power_supply_dc_power_status_info gauge
 infiniband_switch_power_supply_dc_power_status_info{guid="0x506b4b03005c2740",psu="0",status="OK"} 1
