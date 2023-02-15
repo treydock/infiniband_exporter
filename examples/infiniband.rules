@@ -1,0 +1,274 @@
+groups:
+- name: infiniband-record
+  rules:
+  - record: infiniband:switch_port_transmit_data_bytes:irate5m
+    expr: irate(infiniband_switch_port_transmit_data_bytes_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_data_bytes:rate5m
+    expr: rate(infiniband_switch_port_transmit_data_bytes_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_data_bytes:irate5m
+    expr: irate(infiniband_switch_port_receive_data_bytes_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_data_bytes:rate5m
+    expr: rate(infiniband_switch_port_receive_data_bytes_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_packets:irate5m
+    expr: irate(infiniband_switch_port_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_packets:rate5m
+    expr: rate(infiniband_switch_port_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_packets:irate5m
+    expr: irate(infiniband_switch_port_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_packets:rate5m
+    expr: rate(infiniband_switch_port_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_unicast_transmit_packets:irate5m
+    expr: irate(infiniband_switch_port_unicast_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_unicast_transmit_packets:rate5m
+    expr: rate(infiniband_switch_port_unicast_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_unicast_receive_packets:irate5m
+    expr: irate(infiniband_switch_port_unicast_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_unicast_receive_packets:rate5m
+    expr: rate(infiniband_switch_port_unicast_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_multicast_transmit_packets:irate5m
+    expr: irate(infiniband_switch_port_multicast_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_multicast_transmit_packets:rate5m
+    expr: rate(infiniband_switch_port_multicast_transmit_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_multicast_receive_packets:irate5m
+    expr: irate(infiniband_switch_port_multicast_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_multicast_receive_packets:rate5m
+    expr: rate(infiniband_switch_port_multicast_receive_packets_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_symbol_error:delta5m
+    expr: delta(infiniband_switch_port_symbol_error_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_symbol_error:irate5m
+    expr: irate(infiniband_switch_port_symbol_error_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_symbol_error:rate5m
+    expr: rate(infiniband_switch_port_symbol_error_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_error_recovery:delta5m
+    expr: delta(infiniband_switch_port_link_error_recovery_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_error_recovery:irate5m
+    expr: irate(infiniband_switch_port_link_error_recovery_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_error_recovery:rate5m
+    expr: rate(infiniband_switch_port_link_error_recovery_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_downed:delta5m
+    expr: delta(infiniband_switch_port_link_downed_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_downed:irate5m
+    expr: irate(infiniband_switch_port_link_downed_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_link_downed:rate5m
+    expr: rate(infiniband_switch_port_link_downed_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_errors:delta5m
+    expr: delta(infiniband_switch_port_receive_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_errors:irate5m
+    expr: irate(infiniband_switch_port_receive_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_errors:rate5m
+    expr: rate(infiniband_switch_port_receive_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_remote_physical_errors:delta5m
+    expr: delta(infiniband_switch_port_receive_remote_physical_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_remote_physical_errors:irate5m
+    expr: irate(infiniband_switch_port_receive_remote_physical_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_remote_physical_errors:rate5m
+    expr: rate(infiniband_switch_port_receive_remote_physical_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_switch_relay_errors:delta5m
+    expr: delta(infiniband_switch_port_receive_switch_relay_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_switch_relay_errors:irate5m
+    expr: irate(infiniband_switch_port_receive_switch_relay_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_switch_relay_errors:rate5m
+    expr: rate(infiniband_switch_port_receive_switch_relay_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_discards:delta5m
+    expr: delta(infiniband_switch_port_transmit_discards_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_discards:irate5m
+    expr: irate(infiniband_switch_port_transmit_discards_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_discards:rate5m
+    expr: rate(infiniband_switch_port_transmit_discards_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_constraint_errors:delta5m
+    expr: delta(infiniband_switch_port_transmit_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_constraint_errors:irate5m
+    expr: irate(infiniband_switch_port_transmit_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_constraint_errors:rate5m
+    expr: rate(infiniband_switch_port_transmit_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_constraint_errors:delta5m
+    expr: delta(infiniband_switch_port_receive_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_constraint_errors:irate5m
+    expr: irate(infiniband_switch_port_receive_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_receive_constraint_errors:rate5m
+    expr: rate(infiniband_switch_port_receive_constraint_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_local_link_integrity_errors:delta5m
+    expr: delta(infiniband_switch_port_local_link_integrity_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_local_link_integrity_errors:irate5m
+    expr: irate(infiniband_switch_port_local_link_integrity_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_local_link_integrity_errors:rate5m
+    expr: rate(infiniband_switch_port_local_link_integrity_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_excessive_buffer_overrun_errors:delta5m
+    expr: delta(infiniband_switch_port_excessive_buffer_overrun_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_excessive_buffer_overrun_errors:irate5m
+    expr: irate(infiniband_switch_port_excessive_buffer_overrun_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_excessive_buffer_overrun_errors:rate5m
+    expr: rate(infiniband_switch_port_excessive_buffer_overrun_errors_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_vl15_dropped:delta5m
+    expr: delta(infiniband_switch_port_vl15_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_vl15_dropped:irate5m
+    expr: irate(infiniband_switch_port_vl15_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_vl15_dropped:rate5m
+    expr: rate(infiniband_switch_port_vl15_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_wait:delta5m
+    expr: delta(infiniband_switch_port_transmit_wait_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_wait:irate5m
+    expr: irate(infiniband_switch_port_transmit_wait_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_transmit_wait:rate5m
+    expr: rate(infiniband_switch_port_transmit_wait_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_qp1_dropped:delta5m
+    expr: delta(infiniband_switch_port_qp1_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_qp1_dropped:irate5m
+    expr: irate(infiniband_switch_port_qp1_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+  - record: infiniband:switch_port_qp1_dropped:rate5m
+    expr: rate(infiniband_switch_port_qp1_dropped_total[5m]) * on(guid,port) group_left(switch, host, uplink, uplink_port) infiniband_switch_uplink_info
+- name: infiniband-record-switch
+  rules:
+  - record: infiniband:switch_port_transmit_data_bytes:switch_irate5m
+    expr: sum(infiniband:switch_port_transmit_data_bytes:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_data_bytes:switch_rate5m
+    expr: sum(infiniband:switch_port_transmit_data_bytes:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_data_bytes:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_data_bytes:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_data_bytes:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_data_bytes:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_unicast_transmit_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_unicast_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_unicast_transmit_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_unicast_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_unicast_receive_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_unicast_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_unicast_receive_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_unicast_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_multicast_transmit_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_multicast_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_multicast_transmit_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_multicast_transmit_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_multicast_receive_packets:switch_irate5m
+    expr: sum(infiniband:switch_port_multicast_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_multicast_receive_packets:switch_rate5m
+    expr: sum(infiniband:switch_port_multicast_receive_packets:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_symbol_error:switch_irate5m
+    expr: sum(infiniband:switch_port_symbol_error:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_symbol_error:switch_rate5m
+    expr: sum(infiniband:switch_port_symbol_error:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_link_error_recovery:switch_irate5m
+    expr: sum(infiniband:switch_port_link_error_recovery:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_link_error_recovery:switch_rate5m
+    expr: sum(infiniband:switch_port_link_error_recovery:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_link_downed:switch_irate5m
+    expr: sum(infiniband:switch_port_link_downed:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_link_downed:switch_rate5m
+    expr: sum(infiniband:switch_port_link_downed:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_remote_physical_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_remote_physical_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_remote_physical_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_remote_physical_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_switch_relay_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_switch_relay_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_switch_relay_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_switch_relay_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_discards:switch_irate5m
+    expr: sum(infiniband:switch_port_transmit_discards:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_discards:switch_rate5m
+    expr: sum(infiniband:switch_port_transmit_discards:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_constraint_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_transmit_constraint_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_constraint_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_transmit_constraint_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_constraint_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_receive_constraint_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_receive_constraint_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_receive_constraint_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_local_link_integrity_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_local_link_integrity_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_local_link_integrity_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_local_link_integrity_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_excessive_buffer_overrun_errors:switch_irate5m
+    expr: sum(infiniband:switch_port_excessive_buffer_overrun_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_excessive_buffer_overrun_errors:switch_rate5m
+    expr: sum(infiniband:switch_port_excessive_buffer_overrun_errors:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_vl15_dropped:switch_irate5m
+    expr: sum(infiniband:switch_port_vl15_dropped:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_vl15_dropped:switch_rate5m
+    expr: sum(infiniband:switch_port_vl15_dropped:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_wait:switch_irate5m
+    expr: sum(infiniband:switch_port_transmit_wait:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_transmit_wait:switch_rate5m
+    expr: sum(infiniband:switch_port_transmit_wait:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_qp1_dropped:switch_irate5m
+    expr: sum(infiniband:switch_port_qp1_dropped:irate5m) without (host, port, uplink, uplink_port)
+  - record: infiniband:switch_port_qp1_dropped:switch_rate5m
+    expr: sum(infiniband:switch_port_qp1_dropped:irate5m) without (host, port, uplink, uplink_port)
+- name: infiniband
+  rules:
+  - alert: InfinibandCollectError
+    expr: infiniband_exporter_collect_errors > 0
+    for: 5m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: InfiniBand collector {{ $labels.collector }} for {{ $labels.instance }} has {{ $value }} errors
+      description: InfiniBand collector {{ $labels.collector }} for {{ $labels.instance }} has {{ $value }} errors
+  - alert: InfinibandCollectTimeout
+    expr: infiniband_exporter_collect_timeouts > 0
+    for: 5m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: InfiniBand collector {{ $labels.collector }} for {{ $labels.instance }} has {{ $value }} time outs
+      description: InfiniBand collector {{ $labels.collector }} for {{ $labels.instance }} has {{ $value }} time outs
+  - alert: InfinibandCollectorStale
+    expr: (time() - infiniband_exporter_last_execution) > 900
+    for: 10m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: Infiniband collector {{ $labels.collector }} on {{ $labels.instance }} is stale
+      description: Infiniband collector {{ $labels.collector }} on {{ $labels.instance }} has not run in {{ $value | humanizeDuration }}
+  - alert: InfinibandSwitchFanStatus
+    expr: (infiniband_switch_fan_status_info{status!="OK"} * ON(guid) group_left(switch) infiniband_switch_info) == 1
+    for: 10m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: Infiniband switch {{ $labels.switch }} has fan status {{ $labels.status }}
+      description: Infiniband switch {{ $labels.switch }} has fan status {{ $labels.status }}
+  - alert: InfinibandSwitchDCPowerStatus
+    expr: (infiniband_switch_power_supply_dc_power_status_info{status!="OK"} * ON(guid) group_left(switch) infiniband_switch_info) == 1
+    for: 10m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: Infiniband switch {{ $labels.switch }} has DC Power status {{ $labels.status }} on PSU {{ $labels.psu }}
+      description: Infiniband switch {{ $labels.switch }} has DC Power status {{ $labels.status }} on PSU {{ $labels.psu }}
+  - alert: InfinibandSwitchPowerSupplyFanStatus
+    expr: (infiniband_switch_power_supply_fan_status_info{status!="OK"} * ON(guid) group_left(switch) infiniband_switch_info) == 1
+    for: 10m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: Infiniband switch {{ $labels.switch }} has power supply fan status {{ $labels.status }} on PSU {{ $labels.psu }}
+      description: Infiniband switch {{ $labels.switch }} has power supply fan status {{ $labels.status }} on PSU {{ $labels.psu }}
+  - alert: InfinibandSwitchPowerSupplyStatus
+    expr: (infiniband_switch_power_supply_status_info{status!="OK"} * ON(guid) group_left(switch) infiniband_switch_info) == 1
+    for: 10m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: Infiniband switch {{ $labels.switch }} has power supply status {{ $labels.status }} on PSU {{ $labels.psu }}
+      description: Infiniband switch {{ $labels.switch }} has power supply status {{ $labels.status }} on PSU {{ $labels.psu }}
