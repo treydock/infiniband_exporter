@@ -23,8 +23,8 @@ import (
 	"testing"
 	"time"
 
+	kingpin "github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
