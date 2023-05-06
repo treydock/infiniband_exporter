@@ -21,9 +21,9 @@ import (
 	"strconv"
 	"strings"
 
+	kingpin "github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (

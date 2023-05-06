@@ -23,10 +23,10 @@ import (
 	"strings"
 	"testing"
 
+	kingpin "github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/treydock/infiniband_exporter/collectors"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
