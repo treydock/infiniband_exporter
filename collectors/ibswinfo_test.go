@@ -92,6 +92,88 @@ func TestParseIBSWInfo(t *testing.T) {
 	}
 }
 
+func TestParseIBSWInfoFailedPSU(t *testing.T) {
+	out, err := ReadFixture("ibswinfo", "test3")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	data, err := parse_ibswinfo(out, log.NewNopLogger())
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if data.PartNumber != "MQM8790-HS2F" {
+		t.Errorf("Unexpected part number, got %s", data.PartNumber)
+	}
+	if data.SerialNumber != "MT2148T25782" {
+		t.Errorf("Unexpected serial number, got %s", data.SerialNumber)
+	}
+	if data.PSID != "MT_0000000063" {
+		t.Errorf("Unexpected PSID, got %s", data.PSID)
+	}
+	if data.FirmwareVersion != "27.2010.4102" {
+		t.Errorf("Unexpected firmware version, got %s", data.FirmwareVersion)
+	}
+	if len(data.PowerSupplies) != 2 {
+		t.Errorf("Unexpected number of power supplies, got %d", len(data.PowerSupplies))
+	}
+	var psu0, psu1 SwitchPowerSupply
+	for _, psu := range data.PowerSupplies {
+		if psu.ID == "0" {
+			psu0 = psu
+			break
+		}
+	}
+	if psu0.Status != "OK" {
+		t.Errorf("Unexpected power supply status, got %s", psu0.Status)
+	}
+	if psu0.DCPower != "OK" {
+		t.Errorf("Unexpected power supply dc power status, got %s", psu0.DCPower)
+	}
+	if psu0.FanStatus != "OK" {
+		t.Errorf("Unexpected power supply fan status, got %s", psu0.FanStatus)
+	}
+	if psu0.PowerW != 287 {
+		t.Errorf("Unexpected power supply watts, got %f", psu0.PowerW)
+	}
+	for _, psu := range data.PowerSupplies {
+		if psu.ID == "1" {
+			psu1 = psu
+			break
+		}
+	}
+	if psu1.Status != "OK" {
+		t.Errorf("Unexpected power supply status, got %s", psu1.Status)
+	}
+	if psu1.DCPower != "ERROR" {
+		t.Errorf("Unexpected power supply dc power status, got %s", psu1.DCPower)
+	}
+	if psu1.FanStatus != "ERROR" {
+		t.Errorf("Unexpected power supply fan status, got %s", psu1.FanStatus)
+	}
+	if psu1.PowerW != 0 {
+		t.Errorf("Unexpected power supply watts, got %f", psu1.PowerW)
+	}
+	if data.Temp != 47 {
+		t.Errorf("Unexpected temp, got %f", data.Temp)
+	}
+	if data.FanStatus != "OK" {
+		t.Errorf("Unexpected fan status, got %s", data.FanStatus)
+	}
+	if len(data.Fans) != 9 {
+		t.Errorf("Unexpected number of fans, got %d", len(data.Fans))
+	}
+	var fan1 SwitchFan
+	for _, fan := range data.Fans {
+		if fan.ID == "1" {
+			fan1 = fan
+			break
+		}
+	}
+	if fan1.RPM != 5959 {
+		t.Errorf("Unexpected fan RPM, got %f", fan1.RPM)
+	}
+}
+
 func TestParseIBSWInfoErrors(t *testing.T) {
 	tests := []string{
 		"test-err1",

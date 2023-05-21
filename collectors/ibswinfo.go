@@ -219,9 +219,13 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 	var powerSupplies []SwitchPowerSupply
 	var fans []SwitchFan
 	var psuID string
+	var dividerCount int
 	rePSU := regexp.MustCompile(`PSU([0-9]) status`)
 	reFan := regexp.MustCompile(`fan#([0-9]+)`)
 	for _, line := range lines {
+		if strings.HasPrefix(line, "-----") {
+			dividerCount++
+		}
 		l := strings.Split(line, "|")
 		if len(l) != 2 {
 			continue
@@ -238,21 +242,21 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 		case "firmware version":
 			data.FirmwareVersion = value
 		}
-		matchesPSU := rePSU.FindStringSubmatch(key)
 		var psu SwitchPowerSupply
-		if psuID != "" {
-			if p, ok := psus[psuID]; ok {
-				psu = p
-			}
-		}
+		matchesPSU := rePSU.FindStringSubmatch(key)
 		if len(matchesPSU) == 2 {
 			psuID = matchesPSU[1]
 			psu.Status = value
 		}
+		if psu.Status == "" && psuID != "" && dividerCount < 4 {
+			if p, ok := psus[psuID]; ok {
+				psu = p
+			}
+		}
 		if key == "DC power" {
 			psu.DCPower = value
 		}
-		if psuID != "" && key == "fan status" {
+		if key == "fan status" && dividerCount < 4 {
 			psu.FanStatus = value
 		}
 		if key == "power (W)" {
@@ -264,11 +268,8 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				return Ibswinfo{}, err
 			}
 		}
-		if psuID != "" {
+		if psuID != "" && dividerCount < 4 {
 			psus[psuID] = psu
-		}
-		if key == "power (W)" {
-			psuID = ""
 		}
 		if key == "temperature (C)" {
 			temp, err := strconv.ParseFloat(value, 64)
@@ -279,7 +280,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				return Ibswinfo{}, err
 			}
 		}
-		if psuID == "" && key == "fan status" {
+		if key == "fan status" && dividerCount >= 4 {
 			data.FanStatus = value
 		}
 		matchesFan := reFan.FindStringSubmatch(key)
