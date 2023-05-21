@@ -1,3 +1,7 @@
+## 0.5.1 / 2023-05-21
+
+* Fix ibswinfo parsing when a PSU loses power on a switch (#14)
+
 ## 0.5.0 / 2023-05-06
 
 * Update to Go 1.20 and update Go module dependencies (#13)
