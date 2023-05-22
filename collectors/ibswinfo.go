@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -122,15 +123,29 @@ func (s *IbswinfoCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(s.HardwareInfo, prometheus.GaugeValue, 1, swinfo.device.GUID,
 			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber, swinfo.device.Name)
 		for _, psu := range swinfo.PowerSupplies {
-			ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
-			ch <- prometheus.MustNewConstMetric(s.PowerSupplyDCPower, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.DCPower)
-			ch <- prometheus.MustNewConstMetric(s.PowerSupplyFanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.FanStatus)
-			ch <- prometheus.MustNewConstMetric(s.PowerSupplyWatts, prometheus.GaugeValue, psu.PowerW, swinfo.device.GUID, psu.ID)
+			if psu.Status != "" {
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
+			}
+			if psu.DCPower != "" {
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyDCPower, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.DCPower)
+			}
+			if psu.FanStatus != "" {
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyFanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.FanStatus)
+			}
+			if !math.IsNaN(psu.PowerW) {
+				ch <- prometheus.MustNewConstMetric(s.PowerSupplyWatts, prometheus.GaugeValue, psu.PowerW, swinfo.device.GUID, psu.ID)
+			}
 		}
-		ch <- prometheus.MustNewConstMetric(s.Temp, prometheus.GaugeValue, swinfo.Temp, swinfo.device.GUID)
-		ch <- prometheus.MustNewConstMetric(s.FanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, swinfo.FanStatus)
+		if !math.IsNaN(swinfo.Temp) {
+			ch <- prometheus.MustNewConstMetric(s.Temp, prometheus.GaugeValue, swinfo.Temp, swinfo.device.GUID)
+		}
+		if swinfo.FanStatus != "" {
+			ch <- prometheus.MustNewConstMetric(s.FanStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, swinfo.FanStatus)
+		}
 		for _, fan := range swinfo.Fans {
-			ch <- prometheus.MustNewConstMetric(s.FanRPM, prometheus.GaugeValue, fan.RPM, swinfo.device.GUID, fan.ID)
+			if !math.IsNaN(fan.RPM) {
+				ch <- prometheus.MustNewConstMetric(s.FanRPM, prometheus.GaugeValue, fan.RPM, swinfo.device.GUID, fan.ID)
+			}
 		}
 	}
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, s.collector)
@@ -214,6 +229,7 @@ func ibswinfo(lid string, ctx context.Context) (string, error) {
 
 func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 	var data Ibswinfo
+	data.Temp = math.NaN()
 	lines := strings.Split(out, "\n")
 	psus := make(map[string]SwitchPowerSupply)
 	var powerSupplies []SwitchPowerSupply
@@ -243,6 +259,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 			data.FirmwareVersion = value
 		}
 		var psu SwitchPowerSupply
+		psu.PowerW = math.NaN()
 		matchesPSU := rePSU.FindStringSubmatch(key)
 		if len(matchesPSU) == 2 {
 			psuID = matchesPSU[1]
@@ -285,6 +302,14 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 		}
 		matchesFan := reFan.FindStringSubmatch(key)
 		if len(matchesFan) == 2 {
+			fan := SwitchFan{
+				ID: matchesFan[1],
+			}
+			if value == "" {
+				fan.RPM = math.NaN()
+				fans = append(fans, fan)
+				continue
+			}
 			rpm, err := strconv.ParseFloat(value, 64)
 			if err == nil {
 				fan := SwitchFan{
