@@ -16,6 +16,7 @@ package collectors
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"reflect"
@@ -150,7 +151,7 @@ func TestParseIBSWInfoFailedPSU(t *testing.T) {
 	if psu1.FanStatus != "ERROR" {
 		t.Errorf("Unexpected power supply fan status, got %s", psu1.FanStatus)
 	}
-	if psu1.PowerW != 0 {
+	if !math.IsNaN(psu1.PowerW) {
 		t.Errorf("Unexpected power supply watts, got %f", psu1.PowerW)
 	}
 	if data.Temp != 47 {
@@ -284,6 +285,30 @@ func TestIbswinfoCollector(t *testing.T) {
 		"infiniband_switch_hardware_info",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestIbswinfoCollectorMissingStatus(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+		t.Fatal(err)
+	}
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		if lid == "1719" {
+			out, err := ReadFixture("ibswinfo", "test1-missing")
+			return out, err
+		} else if lid == "2052" {
+			out, err := ReadFixture("ibswinfo", "test2")
+			return out, err
+		} else {
+			return "", nil
+		}
+	}
+	collector := NewIbswinfoCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	if val, err := testutil.GatherAndCount(gatherers); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	} else if val != 35 {
+		t.Errorf("Unexpected collection count %d, expected 42", val)
 	}
 }
 

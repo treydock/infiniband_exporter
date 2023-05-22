@@ -1,0 +1,34 @@
+=================================================
+SwitchIB Mellanox Technologies
+=================================================
+part number        | MSB7790-ES2F
+serial number      | MT1943X00498
+product name       | Scorpion IB EDR Unmanaged
+revision           | AN
+ports              | 36
+PSID               | MT_1880110032
+GUID               | 0x1c34da0300010540
+firmware version   | 11.2008.2102
+-------------------------------------------------
+uptime (d-h:m:s)   | 160d-10:38:53
+-------------------------------------------------
+PSU0 status        | OK
+     P/N           | MTEF-PSF-AC-A
+     S/N           | MT1944X10558
+PSU1 status        | 
+     P/N           | MTEF-PSF-AC-A
+     S/N           | MT1944X10555
+     DC power      | OK
+     fan status    | OK
+     power (W)     | 71
+-------------------------------------------------
+-------------------------------------------------
+fan#1 (rpm)        |
+fan#2 (rpm)        | 7349
+fan#3 (rpm)        | 8441
+fan#4 (rpm)        | 7270
+fan#5 (rpm)        | 8337
+fan#6 (rpm)        | 7156
+fan#7 (rpm)        | 8441
+fan#8 (rpm)        | 7232
+-------------------------------------------------
