@@ -1,3 +1,7 @@
+## 0.5.2 / 2023-05-22
+
+* Do not generate ibswinfo metrics for things that do not return values (#15)
+
 ## 0.5.1 / 2023-05-21
 
 * Fix ibswinfo parsing when a PSU loses power on a switch (#14)
