@@ -217,29 +217,33 @@ func TestIbnetdiscoverParseErrors(t *testing.T) {
 
 func TestParseRate(t *testing.T) {
 	tests := []struct {
-		Width        string
-		Rate         string
-		ExpectedRate float64
+		Width                 string
+		Rate                  string
+		ExpectedRawRate       float64
+		ExpectedEffectiveRate float64
 	}{
-		{Width: "4x", Rate: "SDR", ExpectedRate: 2 * 4 * 125000000},
-		{Width: "4x", Rate: "DDR", ExpectedRate: 4 * 4 * 125000000},
-		{Width: "4x", Rate: "QDR", ExpectedRate: 8 * 4 * 125000000},
-		{Width: "4x", Rate: "FDR10", ExpectedRate: 10 * 4 * 125000000},
-		{Width: "4x", Rate: "FDR", ExpectedRate: 14 * 4 * 125000000},
-		{Width: "4x", Rate: "EDR", ExpectedRate: 25 * 4 * 125000000},
-		{Width: "12x", Rate: "EDR", ExpectedRate: 25 * 12 * 125000000},
-		{Width: "4x", Rate: "HDR", ExpectedRate: 50 * 4 * 125000000},
-		{Width: "4x", Rate: "NDR", ExpectedRate: 100 * 4 * 125000000},
-		{Width: "4x", Rate: "XDR", ExpectedRate: 250 * 4 * 125000000},
+		{Width: "4x", Rate: "SDR", ExpectedRawRate: 2.5 * 4 * 125000000, ExpectedEffectiveRate: 2 * 4 * 125000000},
+		{Width: "4x", Rate: "DDR", ExpectedRawRate: 5 * 4 * 125000000, ExpectedEffectiveRate: 4 * 4 * 125000000},
+		{Width: "4x", Rate: "QDR", ExpectedRawRate: 10 * 4 * 125000000, ExpectedEffectiveRate: 8 * 4 * 125000000},
+		{Width: "4x", Rate: "FDR10", ExpectedRawRate: 10.3125 * 4 * 125000000, ExpectedEffectiveRate: 10 * 4 * 125000000},
+		{Width: "4x", Rate: "FDR", ExpectedRawRate: 14.0625 * 4 * 125000000, ExpectedEffectiveRate: 13.64 * 4 * 125000000},
+		{Width: "4x", Rate: "EDR", ExpectedRawRate: 25.78125 * 4 * 125000000, ExpectedEffectiveRate: 25 * 4 * 125000000},
+		{Width: "12x", Rate: "EDR", ExpectedRawRate: 25.78125 * 12 * 125000000, ExpectedEffectiveRate: 25 * 12 * 125000000},
+		{Width: "4x", Rate: "HDR", ExpectedRawRate: 50 * 4 * 125000000, ExpectedEffectiveRate: 50 * 4 * 125000000},
+		{Width: "4x", Rate: "NDR", ExpectedRawRate: 100 * 4 * 125000000, ExpectedEffectiveRate: 100 * 4 * 125000000},
+		{Width: "4x", Rate: "XDR", ExpectedRawRate: 250 * 4 * 125000000, ExpectedEffectiveRate: 250 * 4 * 125000000},
 	}
 	for i, test := range tests {
-		rate, err := parseRate(test.Width, test.Rate)
+		rawRate, effectiveRate, err := parseRate(test.Width, test.Rate)
 		if err != nil {
 			t.Errorf("Unexpected error in case %d: %s", i, err.Error())
 			continue
 		}
-		if rate != test.ExpectedRate {
-			t.Errorf("Unexpected rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedRate, rate)
+		if rawRate != test.ExpectedRawRate {
+			t.Errorf("Unexpected raw rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedRawRate, rawRate)
+		}
+		if effectiveRate != test.ExpectedEffectiveRate {
+			t.Errorf("Unexpected effective rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedEffectiveRate, effectiveRate)
 		}
 	}
 }
@@ -254,7 +258,7 @@ func TestParseRateErrors(t *testing.T) {
 		{Width: "4x", Rate: "ZDR", ExpectedError: "Unknown rate ZDR"},
 	}
 	for i, test := range tests {
-		_, err := parseRate(test.Width, test.Rate)
+		_, _, err := parseRate(test.Width, test.Rate)
 		if err == nil {
 			t.Errorf("Expected an error in case %d", i)
 			continue
