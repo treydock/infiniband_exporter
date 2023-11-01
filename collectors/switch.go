@@ -65,6 +65,7 @@ type SwitchCollector struct {
 	PortVLMappingErrors          *prometheus.Desc
 	PortLoopingErrors            *prometheus.Desc
 	Rate                         *prometheus.Desc
+	RawRate                      *prometheus.Desc
 	Uplink                       *prometheus.Desc
 	Info                         *prometheus.Desc
 }
@@ -137,6 +138,8 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 			"Infiniband switch port PortLoopingErrors", labels, nil),
 		Rate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "rate_bytes_per_second"),
 			"Infiniband switch rate", []string{"guid"}, nil),
+		RawRate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "raw_rate_bytes_per_second"),
+			"Infiniband switch raw rate", []string{"guid"}, nil),
 		Uplink: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "uplink_info"),
 			"Infiniband switch uplink information", append(labels, []string{"switch", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "info"),
@@ -174,6 +177,7 @@ func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- s.PortVLMappingErrors
 	ch <- s.PortLoopingErrors
 	ch <- s.Rate
+	ch <- s.RawRate
 	ch <- s.Uplink
 	ch <- s.Info
 }
@@ -270,6 +274,7 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	if *switchCollectBase {
 		for _, device := range *s.devices {
 			ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
+			ch <- prometheus.MustNewConstMetric(s.RawRate, prometheus.GaugeValue, device.RawRate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(s.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
 			for port, uplink := range device.Uplinks {
 				ch <- prometheus.MustNewConstMetric(s.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
