@@ -195,6 +195,58 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 }
 
+func TestIbnetdiscoverParse2(t *testing.T) {
+	expectedHCAs := []InfinibandDevice{
+		{Type: "CA", LID: "78", GUID: "0x946dae0300630bfe", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "Mellanox Technologies Aggregation Node",
+			Uplinks: map[string]InfinibandUplink{
+				"1": {Type: "SW", LID: "51", PortNumber: "81", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+			},
+		},
+		{Type: "CA", LID: "88", GUID: "0xb83fd20300da1138", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "worker20 mlx5_3",
+			Uplinks: map[string]InfinibandUplink{
+				"1": {Type: "SW", LID: "51", PortNumber: "79", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+			},
+		},
+	}
+
+	expectSwitches := []InfinibandDevice{
+		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "5FB0406-spine-IB03",
+			Uplinks: map[string]InfinibandUplink{
+				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node"},
+			},
+		},
+	}
+	out, err := ReadFixture("ibnetdiscover", "test2")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	switches, hcas, err := ibnetdiscoverParse(out, logger)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+		return
+	}
+	if len(*hcas) != len(expectedHCAs) {
+		t.Errorf("Unexpected number of HCAs:\nExpected %d\nGot: %d", len(expectedHCAs), len(*hcas))
+		return
+	}
+	if len(*switches) != len(expectSwitches) {
+		t.Errorf("Unexpected number of switches:\nExpected %d\nGot: %d", len(expectSwitches), len(*switches))
+		return
+	}
+	for i, e := range expectedHCAs {
+		if !reflect.DeepEqual((*hcas)[i], e) {
+			t.Errorf("Unexpected value for HCA case %d:\nExpected: %v\nGot: %v", i, e, (*hcas)[i])
+		}
+	}
+	for i, e := range expectSwitches {
+		if !reflect.DeepEqual((*switches)[i], e) {
+			t.Errorf("Unexpected value for switch case %d:\nExpected: %v\nGot: %v", i, e, (*switches)[i])
+		}
+	}
+}
+
 func TestIbnetdiscoverParseErrors(t *testing.T) {
 	tests := []struct {
 		Input         string

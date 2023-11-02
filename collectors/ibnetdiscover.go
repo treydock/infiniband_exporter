@@ -138,6 +138,17 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			level.Debug(logger).Log("msg", "Skipping line that is not connected", "line", line)
 			continue
 		}
+		// check the last item, because name may have space so that it is split into multiple items
+		name := items[len(items)-1]
+		if !isPairedQuotesName(name) {
+			for i := len(items) - 2; i > 5; i-- {
+				name = items[i] + name
+				if isPairedQuotesName(name) {
+					items = append(items[:i], name)
+					break
+				}
+			}
+		}
 		if items[5] == "SDR" && len(items) == 7 {
 			level.Debug(logger).Log("msg", "Skipping split mode port", "line", line)
 			continue
@@ -206,14 +217,22 @@ func parseRate(width string, rateStr string) (float64, float64, error) {
 	return 0, 0, fmt.Errorf("Unknown rate %s", rateStr)
 }
 
+func isPairedQuotesName(name string) bool {
+	if name == `'` {
+		return false
+	}
+	first, last := name[0], name[len(name)-1]
+	return first == last && first == '\''
+}
+
 func parseNames(line string) (string, string, error) {
 	re := regexp.MustCompile(`\( '(.+)' - '(.+)' \)`)
 	matches := re.FindStringSubmatch(line)
 	if len(matches) != 3 {
 		return "", "", fmt.Errorf("Unable to extract names using regexp")
 	}
-	portName := matches[1]
-	uplinkName := matches[2]
+	portName := strings.TrimSpace(matches[1])
+	uplinkName := strings.TrimSpace(matches[2])
 	if strings.Contains(portName, " HCA") {
 		portName = strings.Split(portName, " ")[0]
 	}
