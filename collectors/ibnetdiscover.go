@@ -140,7 +140,7 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 		}
 		// check the last item, because name may have space so that it is split into multiple items
 		name := items[len(items)-1]
-		if !isPairedQuotesName(name) {
+		if strings.HasSuffix(name, `'`) && !isPairedQuotesName(name) {
 			for i := len(items) - 2; i > 5; i-- {
 				name = items[i] + name
 				if isPairedQuotesName(name) {
