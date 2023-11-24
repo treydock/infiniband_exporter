@@ -155,8 +155,8 @@ infiniband_switch_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.25e+10
 infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
 # HELP infiniband_switch_raw_rate_bytes_per_second Infiniband switch raw rate
 # TYPE infiniband_switch_raw_rate_bytes_per_second gauge
-infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.29e+10
-infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.29e+10
+infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.2890625e+10
+infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.2890625e+10
 # HELP infiniband_switch_uplink_info Infiniband switch uplink information
 # TYPE infiniband_switch_uplink_info gauge
 infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
@@ -318,9 +318,9 @@ infiniband_hca_rate_bytes_per_second{guid="0x7cfe9003003b4b96"} 1.25e+10
 infiniband_hca_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.25e+10
 # HELP infiniband_hca_raw_rate_bytes_per_second Infiniband HCA raw rate
 # TYPE infiniband_hca_raw_rate_bytes_per_second gauge
-infiniband_hca_raw_rate_bytes_per_second{guid="0x506b4b0300cc02a6"} 1.29e+10
-infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4b96"} 1.29e+10
-infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.29e+10
+infiniband_hca_raw_rate_bytes_per_second{guid="0x506b4b0300cc02a6"} 1.2890625e+10
+infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4b96"} 1.2890625e+10
+infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.2890625e+10
 # HELP infiniband_hca_uplink_info Infiniband HCA uplink information
 # TYPE infiniband_hca_uplink_info gauge
 infiniband_hca_uplink_info{guid="0x506b4b0300cc02a6",hca="p0001",port="1",uplink="ib-i4l1s01",uplink_guid="0x506b4b03005c2740",uplink_lid="2052",uplink_port="35",uplink_type="SW"} 1

@@ -154,8 +154,8 @@ func TestSwitchCollector(t *testing.T) {
 		infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
 		# HELP infiniband_switch_raw_rate_bytes_per_second Infiniband switch raw rate
 		# TYPE infiniband_switch_raw_rate_bytes_per_second gauge
-		infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.29e+10
-		infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.29e+10
+		infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.2890625e+10
+		infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.2890625e+10
 		# HELP infiniband_switch_uplink_info Infiniband switch uplink information
 		# TYPE infiniband_switch_uplink_info gauge
 		infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
@@ -167,8 +167,8 @@ func TestSwitchCollector(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 77 {
-		t.Errorf("Unexpected collection count %d, expected 77", val)
+	} else if val != 79 {
+		t.Errorf("Unexpected collection count %d, expected 79", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -351,8 +351,8 @@ func TestSwitchCollectorFull(t *testing.T) {
 		infiniband_switch_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.25e+10
 		# HELP infiniband_switch_raw_rate_bytes_per_second Infiniband switch raw rate
 		# TYPE infiniband_switch_raw_rate_bytes_per_second gauge
-		infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.29e+10
-		infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.29e+10
+		infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.2890625e+10
+		infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.2890625e+10
 		# HELP infiniband_switch_uplink_info Infiniband switch uplink information
 		# TYPE infiniband_switch_uplink_info gauge
 		infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
@@ -364,8 +364,8 @@ func TestSwitchCollectorFull(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 95 {
-		t.Errorf("Unexpected collection count %d, expected 95", val)
+	} else if val != 97 {
+		t.Errorf("Unexpected collection count %d, expected 97", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -476,8 +476,8 @@ func TestSwitchCollectorError(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 11 {
-		t.Errorf("Unexpected collection count %d, expected 11", val)
+	} else if val != 13 {
+		t.Errorf("Unexpected collection count %d, expected 13", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -504,8 +504,8 @@ func TestSwitchCollectorErrorRunonce(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 12 {
-		t.Errorf("Unexpected collection count %d, expected 12", val)
+	} else if val != 14 {
+		t.Errorf("Unexpected collection count %d, expected 14", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
@@ -532,8 +532,8 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 11 {
-		t.Errorf("Unexpected collection count %d, expected 11", val)
+	} else if val != 13 {
+		t.Errorf("Unexpected collection count %d, expected 13", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_port_excessive_buffer_overrun_errors_total", "infiniband_switch_port_link_downed_total",
