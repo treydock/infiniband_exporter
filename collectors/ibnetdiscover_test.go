@@ -133,17 +133,17 @@ func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
 
 func TestIbnetdiscoverParse(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
-		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), Name: "p0001",
+		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
 			},
 		},
-		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
@@ -151,12 +151,12 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 
 	expectSwitches := []InfinibandDevice{
-		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), Name: "ib-i4l1s01",
+		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i4l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
 			},
 		},
-		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), Name: "ib-i1l1s01",
+		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
 				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},

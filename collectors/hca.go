@@ -299,7 +299,10 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 		limit <- 1
 		wg.Add(1)
 		go func(device InfinibandDevice) {
-			defer wg.Done()
+			defer func() {
+				<-limit
+				wg.Done()
+			}()
 			ctxExtended, cancelExtended := context.WithTimeout(context.Background(), *perfqueryTimeout)
 			defer cancelExtended()
 			ports := getDevicePorts(device.Uplinks)
@@ -313,7 +316,6 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 				errors++
 			}
 			if err != nil {
-				<-limit
 				return
 			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, h.logger)
@@ -345,7 +347,6 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 					countersLock.Unlock()
 				}
 			}
-			<-limit
 		}(device)
 	}
 	wg.Wait()
