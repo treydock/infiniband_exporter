@@ -167,7 +167,10 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 		limit <- 1
 		wg.Add(1)
 		go func(device InfinibandDevice) {
-			defer wg.Done()
+			defer func() {
+				<-limit
+				wg.Done()
+			}()
 			ctxibswinfo, cancelibswinfo := context.WithTimeout(context.Background(), *ibswinfoTimeout)
 			defer cancelibswinfo()
 			level.Debug(s.logger).Log("msg", "Run ibswinfo", "lid", device.LID)
@@ -191,7 +194,6 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 					ibswinfosLock.Unlock()
 				}
 			}
-			<-limit
 		}(device)
 	}
 	wg.Wait()

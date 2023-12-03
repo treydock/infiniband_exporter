@@ -65,6 +65,7 @@ type HCACollector struct {
 	PortVLMappingErrors          *prometheus.Desc
 	PortLoopingErrors            *prometheus.Desc
 	Rate                         *prometheus.Desc
+	RawRate                      *prometheus.Desc
 	Uplink                       *prometheus.Desc
 	Info                         *prometheus.Desc
 }
@@ -137,6 +138,8 @@ func NewHCACollector(devices *[]InfinibandDevice, runonce bool, logger log.Logge
 			"Infiniband HCA port PortLoopingErrors", labels, nil),
 		Rate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "rate_bytes_per_second"),
 			"Infiniband HCA rate", []string{"guid"}, nil),
+		RawRate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "raw_rate_bytes_per_second"),
+			"Infiniband HCA raw rate", []string{"guid"}, nil),
 		Uplink: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "uplink_info"),
 			"Infiniband HCA uplink information", append(labels, []string{"hca", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "info"),
@@ -174,6 +177,7 @@ func (h *HCACollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- h.PortVLMappingErrors
 	ch <- h.PortLoopingErrors
 	ch <- h.Rate
+	ch <- h.RawRate
 	ch <- h.Uplink
 	ch <- h.Info
 }
@@ -270,6 +274,7 @@ func (h *HCACollector) Collect(ch chan<- prometheus.Metric) {
 	if *hcaCollectBase {
 		for _, device := range *h.devices {
 			ch <- prometheus.MustNewConstMetric(h.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
+			ch <- prometheus.MustNewConstMetric(h.RawRate, prometheus.GaugeValue, device.RawRate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(h.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
 			for port, uplink := range device.Uplinks {
 				ch <- prometheus.MustNewConstMetric(h.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
@@ -294,7 +299,10 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 		limit <- 1
 		wg.Add(1)
 		go func(device InfinibandDevice) {
-			defer wg.Done()
+			defer func() {
+				<-limit
+				wg.Done()
+			}()
 			ctxExtended, cancelExtended := context.WithTimeout(context.Background(), *perfqueryTimeout)
 			defer cancelExtended()
 			ports := getDevicePorts(device.Uplinks)
@@ -308,7 +316,6 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 				errors++
 			}
 			if err != nil {
-				<-limit
 				return
 			}
 			deviceCounters, errs := perfqueryParse(device, extendedOut, h.logger)
@@ -340,7 +347,6 @@ func (h *HCACollector) collect() ([]PerfQueryCounters, float64, float64) {
 					countersLock.Unlock()
 				}
 			}
-			<-limit
 		}(device)
 	}
 	wg.Wait()

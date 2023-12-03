@@ -133,17 +133,17 @@ func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
 
 func TestIbnetdiscoverParse(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
-		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), Name: "p0001",
+		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
 			},
 		},
-		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
@@ -151,12 +151,12 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 
 	expectSwitches := []InfinibandDevice{
-		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), Name: "ib-i4l1s01",
+		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i4l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
 			},
 		},
-		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), Name: "ib-i1l1s01",
+		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
 				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
@@ -195,6 +195,58 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 }
 
+func TestIbnetdiscoverParse2(t *testing.T) {
+	expectedHCAs := []InfinibandDevice{
+		{Type: "CA", LID: "78", GUID: "0x946dae0300630bfe", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "Mellanox Technologies Aggregation Node",
+			Uplinks: map[string]InfinibandUplink{
+				"1": {Type: "SW", LID: "51", PortNumber: "81", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+			},
+		},
+		{Type: "CA", LID: "88", GUID: "0xb83fd20300da1138", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "worker20 mlx5_3",
+			Uplinks: map[string]InfinibandUplink{
+				"1": {Type: "SW", LID: "51", PortNumber: "79", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+			},
+		},
+	}
+
+	expectSwitches := []InfinibandDevice{
+		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "5FB0406-spine-IB03",
+			Uplinks: map[string]InfinibandUplink{
+				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node"},
+			},
+		},
+	}
+	out, err := ReadFixture("ibnetdiscover", "test2")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	switches, hcas, err := ibnetdiscoverParse(out, logger)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+		return
+	}
+	if len(*hcas) != len(expectedHCAs) {
+		t.Errorf("Unexpected number of HCAs:\nExpected %d\nGot: %d", len(expectedHCAs), len(*hcas))
+		return
+	}
+	if len(*switches) != len(expectSwitches) {
+		t.Errorf("Unexpected number of switches:\nExpected %d\nGot: %d", len(expectSwitches), len(*switches))
+		return
+	}
+	for i, e := range expectedHCAs {
+		if !reflect.DeepEqual((*hcas)[i], e) {
+			t.Errorf("Unexpected value for HCA case %d:\nExpected: %v\nGot: %v", i, e, (*hcas)[i])
+		}
+	}
+	for i, e := range expectSwitches {
+		if !reflect.DeepEqual((*switches)[i], e) {
+			t.Errorf("Unexpected value for switch case %d:\nExpected: %v\nGot: %v", i, e, (*switches)[i])
+		}
+	}
+}
+
 func TestIbnetdiscoverParseErrors(t *testing.T) {
 	tests := []struct {
 		Input         string
@@ -217,29 +269,33 @@ func TestIbnetdiscoverParseErrors(t *testing.T) {
 
 func TestParseRate(t *testing.T) {
 	tests := []struct {
-		Width        string
-		Rate         string
-		ExpectedRate float64
+		Width                 string
+		Rate                  string
+		ExpectedRawRate       float64
+		ExpectedEffectiveRate float64
 	}{
-		{Width: "4x", Rate: "SDR", ExpectedRate: 2 * 4 * 125000000},
-		{Width: "4x", Rate: "DDR", ExpectedRate: 4 * 4 * 125000000},
-		{Width: "4x", Rate: "QDR", ExpectedRate: 8 * 4 * 125000000},
-		{Width: "4x", Rate: "FDR10", ExpectedRate: 10 * 4 * 125000000},
-		{Width: "4x", Rate: "FDR", ExpectedRate: 14 * 4 * 125000000},
-		{Width: "4x", Rate: "EDR", ExpectedRate: 25 * 4 * 125000000},
-		{Width: "12x", Rate: "EDR", ExpectedRate: 25 * 12 * 125000000},
-		{Width: "4x", Rate: "HDR", ExpectedRate: 50 * 4 * 125000000},
-		{Width: "4x", Rate: "NDR", ExpectedRate: 100 * 4 * 125000000},
-		{Width: "4x", Rate: "XDR", ExpectedRate: 250 * 4 * 125000000},
+		{Width: "4x", Rate: "SDR", ExpectedRawRate: 2.5 * 4 * 125000000, ExpectedEffectiveRate: 2 * 4 * 125000000},
+		{Width: "4x", Rate: "DDR", ExpectedRawRate: 5 * 4 * 125000000, ExpectedEffectiveRate: 4 * 4 * 125000000},
+		{Width: "4x", Rate: "QDR", ExpectedRawRate: 10 * 4 * 125000000, ExpectedEffectiveRate: 8 * 4 * 125000000},
+		{Width: "4x", Rate: "FDR10", ExpectedRawRate: 10.3125 * 4 * 125000000, ExpectedEffectiveRate: 10 * 4 * 125000000},
+		{Width: "4x", Rate: "FDR", ExpectedRawRate: 14.0625 * 4 * 125000000, ExpectedEffectiveRate: 13.64 * 4 * 125000000},
+		{Width: "4x", Rate: "EDR", ExpectedRawRate: 25.78125 * 4 * 125000000, ExpectedEffectiveRate: 25 * 4 * 125000000},
+		{Width: "12x", Rate: "EDR", ExpectedRawRate: 25.78125 * 12 * 125000000, ExpectedEffectiveRate: 25 * 12 * 125000000},
+		{Width: "4x", Rate: "HDR", ExpectedRawRate: 50 * 4 * 125000000, ExpectedEffectiveRate: 50 * 4 * 125000000},
+		{Width: "4x", Rate: "NDR", ExpectedRawRate: 100 * 4 * 125000000, ExpectedEffectiveRate: 100 * 4 * 125000000},
+		{Width: "4x", Rate: "XDR", ExpectedRawRate: 250 * 4 * 125000000, ExpectedEffectiveRate: 250 * 4 * 125000000},
 	}
 	for i, test := range tests {
-		rate, err := parseRate(test.Width, test.Rate)
+		rawRate, effectiveRate, err := parseRate(test.Width, test.Rate)
 		if err != nil {
 			t.Errorf("Unexpected error in case %d: %s", i, err.Error())
 			continue
 		}
-		if rate != test.ExpectedRate {
-			t.Errorf("Unexpected rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedRate, rate)
+		if rawRate != test.ExpectedRawRate {
+			t.Errorf("Unexpected raw rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedRawRate, rawRate)
+		}
+		if effectiveRate != test.ExpectedEffectiveRate {
+			t.Errorf("Unexpected effective rate in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedEffectiveRate, effectiveRate)
 		}
 	}
 }
@@ -254,7 +310,7 @@ func TestParseRateErrors(t *testing.T) {
 		{Width: "4x", Rate: "ZDR", ExpectedError: "Unknown rate ZDR"},
 	}
 	for i, test := range tests {
-		_, err := parseRate(test.Width, test.Rate)
+		_, _, err := parseRate(test.Width, test.Rate)
 		if err == nil {
 			t.Errorf("Expected an error in case %d", i)
 			continue

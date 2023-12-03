@@ -35,16 +35,18 @@ var (
 	ibnetdiscoverPath    = kingpin.Flag("ibnetdiscover.path", "Path to ibnetdiscover").Default("ibnetdiscover").String()
 	nodeNameMap          = kingpin.Flag("ibnetdiscover.node-name-map", "Path to node name map file").Default("").String()
 	ibnetdiscoverTimeout = kingpin.Flag("ibnetdiscover.timeout", "Timeout for ibnetdiscover execution").Default("20s").Duration()
-	rates                = map[string]float64{
-		"SDR":   2,
-		"DDR":   4,
-		"QDR":   8,
-		"FDR10": 10,
-		"FDR":   14,
-		"EDR":   25,
-		"HDR":   50,
-		"NDR":   100,
-		"XDR":   250,
+	// IB Lane Rate Specification: {signaling rate, effective rate}, Gbps
+	// 	https://en.wikipedia.org/wiki/InfiniBand#Performance
+	laneRates = map[string][]float64{
+		"SDR":   {2.5, 2},
+		"DDR":   {5, 4},
+		"QDR":   {10, 8},
+		"FDR10": {10.3125, 10},
+		"FDR":   {14.0625, 13.64},
+		"EDR":   {25.78125, 25},
+		"HDR":   {50, 50},
+		"NDR":   {100, 100},
+		"XDR":   {250, 250},
 	}
 )
 
@@ -53,6 +55,7 @@ type InfinibandDevice struct {
 	LID     string
 	GUID    string
 	Rate    float64
+	RawRate float64
 	Name    string
 	Uplinks map[string]InfinibandUplink
 }
@@ -135,6 +138,17 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			level.Debug(logger).Log("msg", "Skipping line that is not connected", "line", line)
 			continue
 		}
+		// check the last item, because name may have space so that it is split into multiple items
+		name := items[len(items)-1]
+		if strings.HasSuffix(name, `'`) && !isPairedQuotesName(name) {
+			for i := len(items) - 2; i > 5; i-- {
+				name = items[i] + name
+				if isPairedQuotesName(name) {
+					items = append(items[:i], name)
+					break
+				}
+			}
+		}
 		if items[5] == "SDR" && len(items) == 7 {
 			level.Debug(logger).Log("msg", "Skipping split mode port", "line", line)
 			continue
@@ -151,12 +165,13 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 		device.Type = items[0]
 		device.LID = items[1]
 		device.GUID = guid
-		rate, err := parseRate(items[4], items[5])
+		rawRate, effectiveRate, err := parseRate(items[4], items[5])
 		if err != nil {
 			level.Error(logger).Log("msg", "Unable to parse speed", "width", items[4], "rate", items[5], "type", device.Type, "guid", device.GUID)
 			return nil, nil, err
 		} else {
-			device.Rate = rate
+			device.Rate = effectiveRate
+			device.RawRate = rawRate
 		}
 		portName, uplinkName, err := parseNames(line)
 		if err != nil {
@@ -186,20 +201,28 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 	return &switches, &hcas, nil
 }
 
-func parseRate(width string, rateStr string) (float64, error) {
-	var rate float64
+func parseRate(width string, rateStr string) (float64, float64, error) {
 	widthRe := regexp.MustCompile("[0-9]+")
 	widthMatch := widthRe.FindAllString(width, 1)
 	if len(widthMatch) != 1 {
-		return 0, fmt.Errorf("Unable to find match for %s: %v", width, widthMatch)
+		return 0, 0, fmt.Errorf("Unable to find match for %s: %v", width, widthMatch)
 	}
 	widthMultipler, _ := strconv.ParseFloat(widthMatch[0], 64)
-	if baseRate, ok := rates[rateStr]; ok {
-		rate = widthMultipler * baseRate * math.Pow(1000, 3) / 8
-	} else {
-		return 0, fmt.Errorf("Unknown rate %s", rateStr)
+	if laneRate, ok := laneRates[rateStr]; ok {
+		baseRate := widthMultipler * math.Pow(1000, 3) / 8
+		rawRate := laneRate[0] * baseRate
+		effectiveRate := laneRate[1] * baseRate
+		return rawRate, effectiveRate, nil
 	}
-	return rate, nil
+	return 0, 0, fmt.Errorf("Unknown rate %s", rateStr)
+}
+
+func isPairedQuotesName(name string) bool {
+	if name == `'` {
+		return false
+	}
+	first, last := name[0], name[len(name)-1]
+	return first == last && first == '\''
 }
 
 func parseNames(line string) (string, string, error) {
@@ -208,8 +231,8 @@ func parseNames(line string) (string, string, error) {
 	if len(matches) != 3 {
 		return "", "", fmt.Errorf("Unable to extract names using regexp")
 	}
-	portName := matches[1]
-	uplinkName := matches[2]
+	portName := strings.TrimSpace(matches[1])
+	uplinkName := strings.TrimSpace(matches[2])
 	if strings.Contains(portName, " HCA") {
 		portName = strings.Split(portName, " ")[0]
 	}
