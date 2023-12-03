@@ -1,3 +1,7 @@
+## 0.6.0 / 2023-12-03
+
+* feat:device add raw rate & FDR effective lane rate accurate to 13.64 (#16)
+
 ## 0.5.2 / 2023-05-22
 
 * Do not generate ibswinfo metrics for things that do not return values (#15)
