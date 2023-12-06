@@ -250,6 +250,20 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 	}
 }
 
+func TestIbnetdiscoverParse3(t *testing.T) {
+	out, err := ReadFixture("ibnetdiscover", "test3")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	_, _, err = ibnetdiscoverParse(out, logger)
+	if err == nil || !strings.Contains(err.Error(), "Unable to extract names") {
+		t.Errorf("Unexpected error: Unable to extract names")
+		return
+	}
+}
+
 func TestIbnetdiscoverParseErrors(t *testing.T) {
 	tests := []struct {
 		Input         string
