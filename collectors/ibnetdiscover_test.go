@@ -210,6 +210,9 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 	}
 
 	expectSwitches := []InfinibandDevice{
+		{Type: "SW", LID: "478", GUID: "0x0002c9020040f160", Rate: 8 * 4 * 125000000, RawRate: 10 * 4 * 125000000, Name: "Infiniscale-IV Mellanox Technologies",
+			Uplinks: map[string]InfinibandUplink{},
+		},
 		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "5FB0406-spine-IB03",
 			Uplinks: map[string]InfinibandUplink{
 				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node"},

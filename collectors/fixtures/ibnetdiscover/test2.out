@@ -3,3 +3,4 @@ CA    88  1 0xb83fd20300da1138 4x HDR - SW    51 79 0x946dae0300630bf6 ( 'worker
 SW    24 1 0x946dae0300618c82 4x SDR                                    '5FB0406-spine-IB01 '
 SW    25 1 0x946dae0300618c83 4x SDR                                    ' 5FB0406-spine-IB02 '
 SW     9 81 0x946dae030053ec1a 4x HDR - CA    60  1 0x946dae0300630bfe ( ' 5FB0406-spine-IB03 ' - 'Mellanox Technologies Aggregation Node' )
+SW   478 22 0x0002c9020040f160 4x QDR                                   'Infiniscale-IV Mellanox Technologies'

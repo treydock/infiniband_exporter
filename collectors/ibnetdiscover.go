@@ -140,14 +140,18 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 		}
 		// check the last item, because name may have space so that it is split into multiple items
 		name := items[len(items)-1]
-		if strings.HasSuffix(name, `'`) && !isPairedQuotesName(name) {
-			for i := len(items) - 2; i > 5; i-- {
-				name = items[i] + name
-				if isPairedQuotesName(name) {
-					items = append(items[:i], name)
-					break
+		if strings.HasSuffix(name, `'`) {
+			if !isPairedQuotesName(name) {
+				for i := len(items) - 2; i > 5; i-- {
+					name = items[i] + ` ` + name
+					if isPairedQuotesName(name) {
+						items = append(items[:i], name)
+						break
+					}
 				}
 			}
+			name = strings.Trim(name, `'`)
+			items[len(items)-1] = name
 		}
 		if items[5] == "SDR" && len(items) == 7 {
 			level.Debug(logger).Log("msg", "Skipping split mode port", "line", line)
@@ -173,18 +177,21 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			device.Rate = effectiveRate
 			device.RawRate = rawRate
 		}
+
 		portName, uplinkName, err := parseNames(line)
 		if err != nil {
 			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID, "line", line)
 			return nil, nil, err
 		}
+		if uplinkName != "" {
+			uplink.Type = items[7]
+			uplink.LID = items[8]
+			uplink.PortNumber = items[9]
+			uplink.GUID = items[10]
+			uplink.Name = uplinkName
+			device.Uplinks[portNumber] = uplink
+		}
 		device.Name = portName
-		uplink.Type = items[7]
-		uplink.LID = items[8]
-		uplink.PortNumber = items[9]
-		uplink.GUID = items[10]
-		uplink.Name = uplinkName
-		device.Uplinks[portNumber] = uplink
 		devices[guid] = device
 	}
 	deviceGUIDs := getDeviceGUIDs(devices)
@@ -226,20 +233,30 @@ func isPairedQuotesName(name string) bool {
 }
 
 func parseNames(line string) (string, string, error) {
-	re := regexp.MustCompile(`\( '(.+)' - '(.+)' \)`)
-	matches := re.FindStringSubmatch(line)
-	if len(matches) != 3 {
-		return "", "", fmt.Errorf("Unable to extract names using regexp")
+	if strings.Contains(line, `(`) {
+		re := regexp.MustCompile(`\( '(.+)' - '(.+)' \)`)
+		matches := re.FindStringSubmatch(line)
+		if len(matches) != 3 {
+			return "", "", fmt.Errorf("Unable to extract names using regexp")
+		}
+		portName := strings.TrimSpace(matches[1])
+		uplinkName := strings.TrimSpace(matches[2])
+		if strings.Contains(portName, " HCA") {
+			portName = strings.Split(portName, " ")[0]
+		}
+		if strings.Contains(uplinkName, " HCA") {
+			uplinkName = strings.Split(uplinkName, " ")[0]
+		}
+		return portName, uplinkName, nil
 	}
-	portName := strings.TrimSpace(matches[1])
-	uplinkName := strings.TrimSpace(matches[2])
-	if strings.Contains(portName, " HCA") {
-		portName = strings.Split(portName, " ")[0]
+
+	if idx := strings.Index(line, `'`); idx != -1 {
+		portName := strings.TrimSpace(line[idx+1:])
+		if idx = strings.Index(portName, `'`); idx != -1 {
+			return strings.TrimSpace(portName[:idx]), "", nil
+		}
 	}
-	if strings.Contains(uplinkName, " HCA") {
-		uplinkName = strings.Split(uplinkName, " ")[0]
-	}
-	return portName, uplinkName, nil
+	return "", "", fmt.Errorf("Unable to extract names")
 }
 
 func getDeviceGUIDs(devices map[string]InfinibandDevice) []string {
