@@ -210,6 +210,9 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 	}
 
 	expectSwitches := []InfinibandDevice{
+		{Type: "SW", LID: "478", GUID: "0x0002c9020040f160", Rate: 8 * 4 * 125000000, RawRate: 10 * 4 * 125000000, Name: "Infiniscale-IV Mellanox Technologies",
+			Uplinks: map[string]InfinibandUplink{},
+		},
 		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "5FB0406-spine-IB03",
 			Uplinks: map[string]InfinibandUplink{
 				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node"},
@@ -244,6 +247,20 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 		if !reflect.DeepEqual((*switches)[i], e) {
 			t.Errorf("Unexpected value for switch case %d:\nExpected: %v\nGot: %v", i, e, (*switches)[i])
 		}
+	}
+}
+
+func TestIbnetdiscoverParse3(t *testing.T) {
+	out, err := ReadFixture("ibnetdiscover", "test3")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	_, _, err = ibnetdiscoverParse(out, logger)
+	if err == nil || !strings.Contains(err.Error(), "Unable to extract names") {
+		t.Errorf("Unexpected error: Unable to extract names")
+		return
 	}
 }
 
