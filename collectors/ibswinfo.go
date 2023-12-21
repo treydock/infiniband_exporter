@@ -43,6 +43,7 @@ type IbswinfoCollector struct {
 	logger               log.Logger
 	collector            string
 	HardwareInfo         *prometheus.Desc
+	Uptime               *prometheus.Desc
 	PowerSupplyStatus    *prometheus.Desc
 	PowerSupplyDCPower   *prometheus.Desc
 	PowerSupplyFanStatus *prometheus.Desc
@@ -58,6 +59,7 @@ type Ibswinfo struct {
 	SerialNumber    string
 	PSID            string
 	FirmwareVersion string
+	Uptime          float64
 	PowerSupplies   []SwitchPowerSupply
 	Temp            float64
 	FanStatus       string
@@ -88,6 +90,8 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 		collector: collector,
 		HardwareInfo: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "hardware_info"),
 			"Infiniband switch hardware info", []string{"guid", "firmware_version", "psid", "part_number", "serial_number", "switch"}, nil),
+		Uptime: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "uptime_seconds"),
+			"Infiniband switch uptime in seconds", []string{"guid"}, nil),
 		PowerSupplyStatus: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_status_info"),
 			"Infiniband switch power supply status", []string{"guid", "psu", "status"}, nil),
 		PowerSupplyDCPower: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "power_supply_dc_power_status_info"),
@@ -107,6 +111,7 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 
 func (s *IbswinfoCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- s.HardwareInfo
+	ch <- s.Uptime
 	ch <- s.PowerSupplyStatus
 	ch <- s.PowerSupplyDCPower
 	ch <- s.PowerSupplyFanStatus
@@ -122,6 +127,7 @@ func (s *IbswinfoCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, swinfo := range swinfos {
 		ch <- prometheus.MustNewConstMetric(s.HardwareInfo, prometheus.GaugeValue, 1, swinfo.device.GUID,
 			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber, swinfo.device.Name)
+		ch <- prometheus.MustNewConstMetric(s.Uptime, prometheus.GaugeValue, swinfo.Uptime, swinfo.device.GUID)
 		for _, psu := range swinfo.PowerSupplies {
 			if psu.Status != "" {
 				ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
@@ -234,6 +240,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 	data.Temp = math.NaN()
 	lines := strings.Split(out, "\n")
 	psus := make(map[string]SwitchPowerSupply)
+	var err error
 	var powerSupplies []SwitchPowerSupply
 	var fans []SwitchFan
 	var psuID string
@@ -259,6 +266,30 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 			data.PSID = value
 		case "firmware version":
 			data.FirmwareVersion = value
+		}
+		if strings.HasPrefix(key, "uptime") {
+			// Convert Nd-H:M:S to time that ParseDuration understands
+			var days float64
+			uptimeHMS := ""
+			uptime_s1 := strings.Split(value, "-")
+			if len(uptime_s1) == 2 {
+				daysStr := strings.Replace(uptime_s1[0], "d", "", 1)
+				days, err = strconv.ParseFloat(daysStr, 64)
+				if err != nil {
+					level.Error(logger).Log("msg", "Unable to parse uptime duration", "err", err, "value", value)
+					continue
+				}
+				uptimeHMS = uptime_s1[1]
+			} else {
+				uptimeHMS = value
+			}
+			t1, err := time.Parse("15:04:05", uptimeHMS)
+			if err != nil {
+				level.Error(logger).Log("msg", "Unable to parse uptime duration", "err", err, "value", value)
+				continue
+			}
+			t2, _ := time.Parse("15:04:05", "00:00:00")
+			data.Uptime = (days * 86400) + t1.Sub(t2).Seconds()
 		}
 		var psu SwitchPowerSupply
 		psu.PowerW = math.NaN()

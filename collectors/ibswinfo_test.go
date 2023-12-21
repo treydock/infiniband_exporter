@@ -50,6 +50,9 @@ func TestParseIBSWInfo(t *testing.T) {
 	if data.FirmwareVersion != "11.2008.2102" {
 		t.Errorf("Unexpected firmware version, got %s", data.FirmwareVersion)
 	}
+	if data.Uptime != 13862333 {
+		t.Errorf("Unexpected uptime, got %f", data.Uptime)
+	}
 	if len(data.PowerSupplies) != 2 {
 		t.Errorf("Unexpected number of power supplies, got %d", len(data.PowerSupplies))
 	}
@@ -270,19 +273,23 @@ func TestIbswinfoCollector(t *testing.T) {
 		# TYPE infiniband_switch_temperature_celsius gauge
 		infiniband_switch_temperature_celsius{guid="0x506b4b03005c2740"} 53
 		infiniband_switch_temperature_celsius{guid="0x7cfe9003009ce5b0"} 45
+		# HELP infiniband_switch_uptime_seconds Infiniband switch uptime in seconds
+		# TYPE infiniband_switch_uptime_seconds gauge
+		infiniband_switch_uptime_seconds{guid="0x506b4b03005c2740"} 8301347
+        infiniband_switch_uptime_seconds{guid="0x7cfe9003009ce5b0"} 13862333
 	`
 	collector := NewIbswinfoCollector(&switchDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 42 {
-		t.Errorf("Unexpected collection count %d, expected 42", val)
+	} else if val != 44 {
+		t.Errorf("Unexpected collection count %d, expected 44", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_power_supply_status_info", "infiniband_switch_power_supply_dc_power_status_info",
 		"infiniband_switch_power_supply_fan_status_info", "infiniband_switch_power_supply_watts",
 		"infiniband_switch_temperature_celsius", "infiniband_switch_fan_status_info", "infiniband_switch_fan_rpm",
-		"infiniband_switch_hardware_info",
+		"infiniband_switch_hardware_info", "infiniband_switch_uptime_seconds",
 		"infiniband_exporter_collect_errors", "infiniband_exporter_collect_timeouts"); err != nil {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
@@ -307,8 +314,8 @@ func TestIbswinfoCollectorMissingStatus(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 35 {
-		t.Errorf("Unexpected collection count %d, expected 42", val)
+	} else if val != 37 {
+		t.Errorf("Unexpected collection count %d, expected 37", val)
 	}
 }
 
