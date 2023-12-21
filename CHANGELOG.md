@@ -1,3 +1,8 @@
+## 0.7.0 / 2023-12-21
+
+* parseNames support for unconnected non-SDR lines (#18)
+* Add infiniband_switch_uptime_seconds from ibswinfo (#19)
+
 ## 0.6.0 / 2023-12-03
 
 * feat:device add raw rate & FDR effective lane rate accurate to 13.64 (#16)
