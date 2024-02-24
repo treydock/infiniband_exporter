@@ -51,13 +51,14 @@ var (
 )
 
 type InfinibandDevice struct {
-	Type    string
-	LID     string
-	GUID    string
-	Rate    float64
-	RawRate float64
-	Name    string
-	Uplinks map[string]InfinibandUplink
+	Type     string
+	LID      string
+	GUID     string
+	Rate     float64
+	RawRate  float64
+	Name     string
+	PortName string
+	Uplinks  map[string]InfinibandUplink
 }
 
 type InfinibandUplink struct {
@@ -66,6 +67,7 @@ type InfinibandUplink struct {
 	PortNumber string
 	GUID       string
 	Name       string
+	PortName   string
 }
 
 type IBNetDiscover struct {
@@ -177,22 +179,26 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			device.Rate = effectiveRate
 			device.RawRate = rawRate
 		}
-
-		portName, uplinkName, err := parseNames(line)
-		if err != nil {
-			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID, "line", line)
-			return nil, nil, err
-		}
-		if uplinkName != "" {
+		if len(items) >= 11 {
 			uplink.Type = items[7]
 			uplink.LID = items[8]
 			uplink.PortNumber = items[9]
 			uplink.GUID = items[10]
+		}
+		deviceName, portName, uplinkName, uplinkPortName, err := parseNames(line, device.Type, uplink.Type, logger)
+		if err != nil {
+			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID, "line", line)
+			return nil, nil, err
+		}
+		level.Debug(logger).Log("msg", "parsed names", "portName", portName, "uplinkName", uplinkName)
+		device.Name = deviceName
+		device.PortName = portName
+		devices[guid] = device
+		if uplinkName != "" {
 			uplink.Name = uplinkName
+			uplink.PortName = uplinkPortName
 			device.Uplinks[portNumber] = uplink
 		}
-		device.Name = portName
-		devices[guid] = device
 	}
 	deviceGUIDs := getDeviceGUIDs(devices)
 	sort.Strings(deviceGUIDs)
@@ -232,31 +238,46 @@ func isPairedQuotesName(name string) bool {
 	return first == last && first == '\''
 }
 
-func parseNames(line string) (string, string, error) {
+func parseNames(line string, deviceType string, uplinkType string, logger log.Logger) (string, string, string, string, error) {
 	if strings.Contains(line, `(`) {
 		re := regexp.MustCompile(`\( '(.+)' - '(.+)' \)`)
 		matches := re.FindStringSubmatch(line)
 		if len(matches) != 3 {
-			return "", "", fmt.Errorf("Unable to extract names using regexp")
+			return "", "", "", "", fmt.Errorf("Unable to extract names using regexp")
 		}
-		portName := strings.TrimSpace(matches[1])
+		deviceName := strings.TrimSpace(matches[1])
 		uplinkName := strings.TrimSpace(matches[2])
-		if strings.Contains(portName, " HCA") {
-			portName = strings.Split(portName, " ")[0]
+		var portName, uplinkPortName string
+		level.Debug(logger).Log("msg", "parseNames", "matches", strings.Join(matches, ","), "deviceType", deviceType, "uplinkType", uplinkType)
+		if deviceType == "CA" {
+			deviceNames := strings.Split(deviceName, " ")
+			if len(deviceNames) <= 2 {
+				deviceName = deviceNames[0]
+			}
+			if len(deviceNames) == 2 {
+				portName = deviceNames[1]
+			}
 		}
-		if strings.Contains(uplinkName, " HCA") {
-			uplinkName = strings.Split(uplinkName, " ")[0]
+		if uplinkType == "CA" {
+			uplinkNames := strings.Split(uplinkName, " ")
+			if len(uplinkNames) <= 2 {
+				uplinkName = uplinkNames[0]
+			}
+			if len(uplinkNames) == 2 {
+				uplinkPortName = uplinkNames[1]
+			}
 		}
-		return portName, uplinkName, nil
+		level.Debug(logger).Log("msg", "parseNames return", "portName", deviceName, "uplinkName", uplinkName)
+		return deviceName, portName, uplinkName, uplinkPortName, nil
 	}
 
 	if idx := strings.Index(line, `'`); idx != -1 {
 		portName := strings.TrimSpace(line[idx+1:])
 		if idx = strings.Index(portName, `'`); idx != -1 {
-			return strings.TrimSpace(portName[:idx]), "", nil
+			return strings.TrimSpace(portName[:idx]), "", "", "", nil
 		}
 	}
-	return "", "", fmt.Errorf("Unable to extract names")
+	return "", "", "", "", fmt.Errorf("Unable to extract names")
 }
 
 func getDeviceGUIDs(devices map[string]InfinibandDevice) []string {

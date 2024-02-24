@@ -24,12 +24,12 @@ import (
 
 var (
 	hcaDevices = []InfinibandDevice{
-		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002", PortName: "HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001", PortName: "HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
@@ -51,8 +51,8 @@ func TestHCACollector(t *testing.T) {
 		infiniband_exporter_collect_timeouts{collector="hca"} 0
 		# HELP infiniband_hca_info Infiniband HCA information
 		# TYPE infiniband_hca_info gauge
-		infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133"} 1
-		infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134"} 1
+		infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133",port_name="HCA-1"} 1
+		infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134",port_name="HCA-1"} 1
 		# HELP infiniband_hca_port_excessive_buffer_overrun_errors_total Infiniband HCA port ExcessiveBufferOverrunErrors
 		# TYPE infiniband_hca_port_excessive_buffer_overrun_errors_total counter
 		infiniband_hca_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -151,8 +151,8 @@ func TestHCACollector(t *testing.T) {
 		infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.2890625e+10
 		# HELP infiniband_hca_uplink_info Infiniband HCA uplink information
 		# TYPE infiniband_hca_uplink_info gauge
-		infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_type="SW"} 1
-		infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_type="SW"} 1
+		infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_port_name="",uplink_type="SW"} 1
+		infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_port_name="",uplink_type="SW"} 1
 	`
 	collector := NewHCACollector(&hcaDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)
@@ -194,8 +194,8 @@ func TestHCACollectorFull(t *testing.T) {
 		infiniband_exporter_collect_timeouts{collector="hca"} 0
 		# HELP infiniband_hca_info Infiniband HCA information
 		# TYPE infiniband_hca_info gauge
-		infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133"} 1
-		infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134"} 1
+		infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133",port_name="HCA-1"} 1
+		infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134",port_name="HCA-1"} 1
 		# HELP infiniband_hca_port_buffer_overrun_errors_total Infiniband HCA port PortBufferOverrunErrors
 		# TYPE infiniband_hca_port_buffer_overrun_errors_total counter
 		infiniband_hca_port_buffer_overrun_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -318,8 +318,8 @@ func TestHCACollectorFull(t *testing.T) {
 		infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.2890625e+10
 		# HELP infiniband_hca_uplink_info Infiniband HCA uplink information
 		# TYPE infiniband_hca_uplink_info gauge
-		infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_type="SW"} 1
-		infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_type="SW"} 1
+		infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_port_name="",uplink_type="SW"} 1
+		infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_port_name="",uplink_type="SW"} 1
 	`
 	collector := NewHCACollector(&hcaDevices, false, log.NewNopLogger())
 	gatherers := setupGatherer(collector)

@@ -141,9 +141,9 @@ func NewHCACollector(devices *[]InfinibandDevice, runonce bool, logger log.Logge
 		RawRate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "raw_rate_bytes_per_second"),
 			"Infiniband HCA raw rate", []string{"guid"}, nil),
 		Uplink: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "uplink_info"),
-			"Infiniband HCA uplink information", append(labels, []string{"hca", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
+			"Infiniband HCA uplink information", append(labels, []string{"hca", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_port_name", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "hca", "info"),
-			"Infiniband HCA information", []string{"guid", "hca", "lid"}, nil),
+			"Infiniband HCA information", []string{"guid", "hca", "port_name", "lid"}, nil),
 	}
 }
 
@@ -275,9 +275,9 @@ func (h *HCACollector) Collect(ch chan<- prometheus.Metric) {
 		for _, device := range *h.devices {
 			ch <- prometheus.MustNewConstMetric(h.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(h.RawRate, prometheus.GaugeValue, device.RawRate, device.GUID)
-			ch <- prometheus.MustNewConstMetric(h.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
+			ch <- prometheus.MustNewConstMetric(h.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.PortName, device.LID)
 			for port, uplink := range device.Uplinks {
-				ch <- prometheus.MustNewConstMetric(h.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
+				ch <- prometheus.MustNewConstMetric(h.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.PortName, uplink.LID)
 			}
 		}
 	}

@@ -159,10 +159,10 @@ infiniband_switch_raw_rate_bytes_per_second{guid="0x506b4b03005c2740"} 1.2890625
 infiniband_switch_raw_rate_bytes_per_second{guid="0x7cfe9003009ce5b0"} 1.2890625e+10
 # HELP infiniband_switch_uplink_info Infiniband switch uplink information
 # TYPE infiniband_switch_uplink_info gauge
-infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_type="CA"} 1
-infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01",uplink="ib-i1l2s01",uplink_guid="0x7cfe900300b07320",uplink_lid="1516",uplink_port="1",uplink_type="SW"} 1
-infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_type="CA"} 1
-infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_type="CA"} 1`
+infiniband_switch_uplink_info{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01",uplink="p0001",uplink_guid="0x506b4b0300cc02a6",uplink_lid="1432",uplink_port="1",uplink_port_name="HCA-1",uplink_type="CA"} 1
+infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01",uplink="ib-i1l2s01",uplink_guid="0x7cfe900300b07320",uplink_lid="1516",uplink_port="1",uplink_port_name="",uplink_type="SW"} 1
+infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01",uplink="o0001",uplink_guid="0x7cfe9003003b4bde",uplink_lid="134",uplink_port="1",uplink_port_name="HCA-1",uplink_type="CA"} 1
+infiniband_switch_uplink_info{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01",uplink="o0002",uplink_guid="0x7cfe9003003b4b96",uplink_lid="133",uplink_port="1",uplink_port_name="HCA-1",uplink_type="CA"} 1`
 	expectedIbswinfo = `# HELP infiniband_switch_fan_rpm Infiniband switch fan RPM
 # TYPE infiniband_switch_fan_rpm gauge
 infiniband_switch_fan_rpm{fan="1",guid="0x506b4b03005c2740"} 6125
@@ -220,9 +220,9 @@ infiniband_switch_temperature_celsius{guid="0x506b4b03005c2740"} 53
 infiniband_switch_temperature_celsius{guid="0x7cfe9003009ce5b0"} 45`
 	expectedHCA = `# HELP infiniband_hca_info Infiniband HCA information
 # TYPE infiniband_hca_info gauge
-infiniband_hca_info{guid="0x506b4b0300cc02a6",hca="p0001",lid="1432"} 1
-infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133"} 1
-infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134"} 1
+infiniband_hca_info{guid="0x506b4b0300cc02a6",hca="p0001",lid="1432",port_name="HCA-1"} 1
+infiniband_hca_info{guid="0x7cfe9003003b4b96",hca="o0002",lid="133",port_name="HCA-1"} 1
+infiniband_hca_info{guid="0x7cfe9003003b4bde",hca="o0001",lid="134",port_name="HCA-1"} 1
 # HELP infiniband_hca_port_excessive_buffer_overrun_errors_total Infiniband HCA port ExcessiveBufferOverrunErrors
 # TYPE infiniband_hca_port_excessive_buffer_overrun_errors_total counter
 infiniband_hca_port_excessive_buffer_overrun_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -323,9 +323,9 @@ infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4b96"} 1.2890625e+1
 infiniband_hca_raw_rate_bytes_per_second{guid="0x7cfe9003003b4bde"} 1.2890625e+10
 # HELP infiniband_hca_uplink_info Infiniband HCA uplink information
 # TYPE infiniband_hca_uplink_info gauge
-infiniband_hca_uplink_info{guid="0x506b4b0300cc02a6",hca="p0001",port="1",uplink="ib-i4l1s01",uplink_guid="0x506b4b03005c2740",uplink_lid="2052",uplink_port="35",uplink_type="SW"} 1
-infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_type="SW"} 1
-infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_type="SW"} 1`
+infiniband_hca_uplink_info{guid="0x506b4b0300cc02a6",hca="p0001",port="1",uplink="ib-i4l1s01",uplink_guid="0x506b4b03005c2740",uplink_lid="2052",uplink_port="35",uplink_port_name="",uplink_type="SW"} 1
+infiniband_hca_uplink_info{guid="0x7cfe9003003b4b96",hca="o0002",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="11",uplink_port_name="",uplink_type="SW"} 1
+infiniband_hca_uplink_info{guid="0x7cfe9003003b4bde",hca="o0001",port="1",uplink="ib-i1l1s01",uplink_guid="0x7cfe9003009ce5b0",uplink_lid="1719",uplink_port="10",uplink_port_name="",uplink_type="SW"} 1`
 	expectedSwitchNoError = `# HELP infiniband_exporter_collect_errors Number of errors that occurred during collection
 # TYPE infiniband_exporter_collect_errors gauge
 infiniband_exporter_collect_errors{collector="ibnetdiscover-runonce"} 0

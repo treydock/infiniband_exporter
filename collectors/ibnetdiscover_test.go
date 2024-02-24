@@ -133,17 +133,17 @@ func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
 
 func TestIbnetdiscoverParse(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
-		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001",
+		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001", PortName: "HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
 			},
 		},
-		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002", PortName: "HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001", PortName: "HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
@@ -153,14 +153,14 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	expectSwitches := []InfinibandDevice{
 		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i4l1s01",
 			Uplinks: map[string]InfinibandUplink{
-				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
+				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001", PortName: "HCA-1"},
 			},
 		},
 		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
-				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
-				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002"},
+				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001", PortName: "HCA-1"},
+				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002", PortName: "HCA-1"},
 			},
 		},
 	}
@@ -202,7 +202,7 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 				"1": {Type: "SW", LID: "51", PortNumber: "81", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
 			},
 		},
-		{Type: "CA", LID: "88", GUID: "0xb83fd20300da1138", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "worker20 mlx5_3",
+		{Type: "CA", LID: "88", GUID: "0xb83fd20300da1138", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "worker20", PortName: "mlx5_3",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "51", PortNumber: "79", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
 			},
@@ -340,24 +340,33 @@ func TestParseRateErrors(t *testing.T) {
 
 func TestParseNames(t *testing.T) {
 	tests := []struct {
-		Line               string
-		ExpectedPortName   string
-		ExpectedUplinkName string
+		Line                   string
+		DeviceType             string
+		UplinkType             string
+		ExpectedDeviceName     string
+		ExpectedPortName       string
+		ExpectedUplinkName     string
+		ExpectedUplinkPortName string
 	}{
 		{Line: "CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )",
-			ExpectedPortName: "o0001", ExpectedUplinkName: "ib-i1l1s01"},
+			DeviceType: "CA", UplinkType: "SW", ExpectedDeviceName: "o0001", ExpectedPortName: "HCA-1", ExpectedUplinkName: "ib-i1l1s01", ExpectedUplinkPortName: ""},
 		{Line: "SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )",
-			ExpectedPortName: "ib-i4l1s01", ExpectedUplinkName: "p0001"},
+			DeviceType: "SW", UplinkType: "CA", ExpectedDeviceName: "ib-i4l1s01", ExpectedPortName: "", ExpectedUplinkName: "p0001", ExpectedUplinkPortName: "HCA-1"},
 		{Line: "SW  1540 15 0x7cfe900300b07440 4x EDR - CA  1428  1 0x7cfe9003008dd6f8 ( 'SwitchIB Mellanox Technologies' - 'o0811 HCA-1' )",
-			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "o0811"},
+			DeviceType: "SW", UplinkType: "CA", ExpectedDeviceName: "SwitchIB Mellanox Technologies", ExpectedPortName: "", ExpectedUplinkName: "o0811", ExpectedUplinkPortName: "HCA-1"},
 		{Line: "SW  1540  7 0x7cfe900300b07440 4x EDR - SW  1495 36 0x7cfe900300a1db20 ( 'SwitchIB Mellanox Technologies' - 'SwitchIB Mellanox Technologies' )",
-			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "SwitchIB Mellanox Technologies"},
+			DeviceType: "SW", UplinkType: "SW", ExpectedDeviceName: "SwitchIB Mellanox Technologies", ExpectedPortName: "", ExpectedUplinkName: "SwitchIB Mellanox Technologies", ExpectedUplinkPortName: ""},
 	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
 	for i, test := range tests {
-		portName, uplinkName, err := parseNames(test.Line)
+		deviceName, portName, uplinkName, uplinkPortName, err := parseNames(test.Line, test.DeviceType, test.UplinkType, logger)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err.Error())
 			continue
+		}
+		if deviceName != test.ExpectedDeviceName {
+			t.Errorf("Unexpected device name in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedDeviceName, deviceName)
 		}
 		if portName != test.ExpectedPortName {
 			t.Errorf("Unexpected port name in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedPortName, portName)
@@ -365,19 +374,26 @@ func TestParseNames(t *testing.T) {
 		if uplinkName != test.ExpectedUplinkName {
 			t.Errorf("Unexpected uplink name in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedUplinkName, uplinkName)
 		}
+		if uplinkPortName != test.ExpectedUplinkPortName {
+			t.Errorf("Unexpected uplink port name in case %d:\nExpected: %v\nGot: %v", i, test.ExpectedUplinkPortName, uplinkPortName)
+		}
 	}
 }
 
 func TestParseNamesErrors(t *testing.T) {
 	tests := []struct {
 		Line          string
+		DeviceType    string
+		UplinkType    string
 		ExpectedError string
 	}{
 		{Line: "SW  1540 10 0x7cfe900300b07440 4x EDR - CA    16  1 0x7cfe9003003b4b9a ( 'name' )",
-			ExpectedError: "Unable to extract names using regexp"},
+			DeviceType: "SW", UplinkType: "CA", ExpectedError: "Unable to extract names using regexp"},
 	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
 	for i, test := range tests {
-		_, _, err := parseNames(test.Line)
+		_, _, _, _, err := parseNames(test.Line, test.DeviceType, test.UplinkType, logger)
 		if err == nil {
 			t.Errorf("Expected an error in case %d", i)
 			continue
