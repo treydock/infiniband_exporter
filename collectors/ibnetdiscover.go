@@ -241,12 +241,6 @@ func parseNames(line string) (string, string, error) {
 		}
 		portName := strings.TrimSpace(matches[1])
 		uplinkName := strings.TrimSpace(matches[2])
-		if strings.Contains(portName, " HCA") {
-			portName = strings.Split(portName, " ")[0]
-		}
-		if strings.Contains(uplinkName, " HCA") {
-			uplinkName = strings.Split(uplinkName, " ")[0]
-		}
 		return portName, uplinkName, nil
 	}
 

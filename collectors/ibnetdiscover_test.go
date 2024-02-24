@@ -133,17 +133,17 @@ func TestIbnetdiscoverCollectorTimeout(t *testing.T) {
 
 func TestIbnetdiscoverParse(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
-		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001",
+		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
 			},
 		},
-		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002",
+		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
 		},
-		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001",
+		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
 				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
 			},
@@ -153,14 +153,14 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	expectSwitches := []InfinibandDevice{
 		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i4l1s01",
 			Uplinks: map[string]InfinibandUplink{
-				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001"},
+				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001 HCA-1"},
 			},
 		},
 		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{
 				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
-				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001"},
-				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002"},
+				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001 HCA-1"},
+				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002 HCA-1"},
 			},
 		},
 	}
@@ -345,11 +345,11 @@ func TestParseNames(t *testing.T) {
 		ExpectedUplinkName string
 	}{
 		{Line: "CA   134  1 0x7cfe9003003b4bde 4x EDR - SW  1719 10 0x7cfe9003009ce5b0 ( 'o0001 HCA-1' - 'ib-i1l1s01' )",
-			ExpectedPortName: "o0001", ExpectedUplinkName: "ib-i1l1s01"},
+			ExpectedPortName: "o0001 HCA-1", ExpectedUplinkName: "ib-i1l1s01"},
 		{Line: "SW  2052 35 0x506b4b03005c2740 4x EDR - CA  1432  1 0x506b4b0300cc02a6 ( 'ib-i4l1s01' - 'p0001 HCA-1' )",
-			ExpectedPortName: "ib-i4l1s01", ExpectedUplinkName: "p0001"},
+			ExpectedPortName: "ib-i4l1s01", ExpectedUplinkName: "p0001 HCA-1"},
 		{Line: "SW  1540 15 0x7cfe900300b07440 4x EDR - CA  1428  1 0x7cfe9003008dd6f8 ( 'SwitchIB Mellanox Technologies' - 'o0811 HCA-1' )",
-			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "o0811"},
+			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "o0811 HCA-1"},
 		{Line: "SW  1540  7 0x7cfe900300b07440 4x EDR - SW  1495 36 0x7cfe900300a1db20 ( 'SwitchIB Mellanox Technologies' - 'SwitchIB Mellanox Technologies' )",
 			ExpectedPortName: "SwitchIB Mellanox Technologies", ExpectedUplinkName: "SwitchIB Mellanox Technologies"},
 	}
