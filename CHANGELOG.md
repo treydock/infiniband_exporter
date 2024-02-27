@@ -1,3 +1,7 @@
+## 0.8.0 / 2024-02-27
+
+* Ensure the full HCA name is included in "hca" and "uplink" labels (#21)
+
 ## 0.7.0 / 2023-12-21
 
 * parseNames support for unconnected non-SDR lines (#18)
