@@ -15,6 +15,7 @@ package collectors
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"strings"
 	"sync"
@@ -36,6 +37,9 @@ type SwitchCollector struct {
 	devices                      *[]InfinibandDevice
 	logger                       log.Logger
 	collector                    string
+	Duration                     *prometheus.Desc
+	Error                        *prometheus.Desc
+	Timeout                      *prometheus.Desc
 	PortXmitData                 *prometheus.Desc
 	PortRcvData                  *prometheus.Desc
 	PortXmitPkts                 *prometheus.Desc
@@ -70,6 +74,15 @@ type SwitchCollector struct {
 	Info                         *prometheus.Desc
 }
 
+type SwitchMetrics struct {
+	duration       float64
+	timeout        float64
+	error          float64
+	rcvErrDuration float64
+	rcvErrTimeout  float64
+	rcvErrError    float64
+}
+
 func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Logger) *SwitchCollector {
 	labels := []string{"guid", "port"}
 	collector := "switch"
@@ -80,6 +93,12 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 		devices:   devices,
 		logger:    log.With(logger, "collector", collector),
 		collector: collector,
+		Duration: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_duration_seconds"),
+			"Duration of collection", []string{"guid", "collector"}, nil),
+		Error: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_error"),
+			"Indicates if collect error", []string{"guid", "collector"}, nil),
+		Timeout: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_timeout"),
+			"Indicates if collect timeout", []string{"guid", "collector"}, nil),
 		PortXmitData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_transmit_data_bytes_total"),
 			"Infiniband switch port PortXmitData", labels, nil),
 		PortRcvData: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_receive_data_bytes_total"),
@@ -148,6 +167,9 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 }
 
 func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- s.Duration
+	ch <- s.Error
+	ch <- s.Timeout
 	ch <- s.PortXmitData
 	ch <- s.PortRcvData
 	ch <- s.PortXmitPkts
@@ -184,7 +206,7 @@ func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
 
 func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	collectTime := time.Now()
-	counters, errors, timeouts := s.collect()
+	counters, metrics, errors, timeouts := s.collect()
 	for _, c := range counters {
 		if !math.IsNaN(c.PortXmitData) {
 			ch <- prometheus.MustNewConstMetric(s.PortXmitData, prometheus.CounterValue, c.PortXmitData, c.device.GUID, c.PortSelect)
@@ -273,12 +295,24 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 	if *switchCollectBase {
 		for _, device := range *s.devices {
+			metric := metrics[device.GUID]
 			ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(s.RawRate, prometheus.GaugeValue, device.RawRate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(s.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
+			ch <- prometheus.MustNewConstMetric(s.Duration, prometheus.GaugeValue, metric.duration, device.GUID, s.collector)
+			ch <- prometheus.MustNewConstMetric(s.Timeout, prometheus.GaugeValue, metric.timeout, device.GUID, s.collector)
+			ch <- prometheus.MustNewConstMetric(s.Error, prometheus.GaugeValue, metric.error, device.GUID, s.collector)
 			for port, uplink := range device.Uplinks {
 				ch <- prometheus.MustNewConstMetric(s.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
 			}
+		}
+	}
+	if *switchCollectRcvErr {
+		for _, device := range *s.devices {
+			metric := metrics[device.GUID]
+			ch <- prometheus.MustNewConstMetric(s.Duration, prometheus.GaugeValue, metric.rcvErrDuration, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
+			ch <- prometheus.MustNewConstMetric(s.Timeout, prometheus.GaugeValue, metric.rcvErrTimeout, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
+			ch <- prometheus.MustNewConstMetric(s.Error, prometheus.GaugeValue, metric.rcvErrError, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
 		}
 	}
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, s.collector)
@@ -289,8 +323,9 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
+func (s *SwitchCollector) collect() ([]PerfQueryCounters, map[string]SwitchMetrics, float64, float64) {
 	var counters []PerfQueryCounters
+	metrics := make(map[string]SwitchMetrics)
 	var countersLock sync.Mutex
 	var errors, timeouts float64
 	limit := make(chan int, *maxConcurrent)
@@ -307,11 +342,15 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 			defer cancelExtended()
 			ports := getDevicePorts(device.Uplinks)
 			perfqueryPorts := strings.Join(ports, ",")
+			start := time.Now()
 			extendedOut, err := PerfqueryExec(device.GUID, perfqueryPorts, []string{"-l", "-x"}, ctxExtended)
+			metric := SwitchMetrics{duration: time.Since(start).Seconds()}
 			if err == context.DeadlineExceeded {
+				metric.timeout = 1
 				level.Error(s.logger).Log("msg", "Timeout collecting extended perfquery counters", "guid", device.GUID)
 				timeouts++
 			} else if err != nil {
+				metric.error = 1
 				level.Error(s.logger).Log("msg", "Error collecting extended perfquery counters", "guid", device.GUID)
 				errors++
 			}
@@ -330,12 +369,16 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 				for _, deviceCounter := range deviceCounters {
 					ctxRcvErr, cancelRcvErr := context.WithTimeout(context.Background(), *perfqueryTimeout)
 					defer cancelRcvErr()
+					rcvErrStart := time.Now()
 					rcvErrOut, err := PerfqueryExec(device.GUID, deviceCounter.PortSelect, []string{"-E"}, ctxRcvErr)
+					metric.rcvErrDuration = time.Since(rcvErrStart).Seconds()
 					if err == context.DeadlineExceeded {
+						metric.rcvErrTimeout = 1
 						level.Error(s.logger).Log("msg", "Timeout collecting rcvErr perfquery counters", "guid", device.GUID)
 						timeouts++
 						continue
 					} else if err != nil {
+						metric.rcvErrError = 1
 						level.Error(s.logger).Log("msg", "Error collecting rcvErr perfquery counters", "guid", device.GUID)
 						errors++
 						continue
@@ -347,9 +390,12 @@ func (s *SwitchCollector) collect() ([]PerfQueryCounters, float64, float64) {
 					countersLock.Unlock()
 				}
 			}
+			countersLock.Lock()
+			metrics[device.GUID] = metric
+			countersLock.Unlock()
 		}(device)
 	}
 	wg.Wait()
 	close(limit)
-	return counters, errors, timeouts
+	return counters, metrics, errors, timeouts
 }
