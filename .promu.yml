@@ -1,24 +1,26 @@
+# yamllint disable rule:line-length
+---
 go:
-  version: 1.20
+  version: 1.22
   cgo: false
 repository:
-    path: github.com/treydock/infiniband_exporter
+  path: github.com/treydock/infiniband_exporter
 build:
-    binaries:
-        - name: infiniband_exporter
-          path: .
-    flags: -a -tags netgo
-    ldflags: |
-        -extldflags "-static"
-        -X github.com/prometheus/common/version.Version={{.Version}}
-        -X github.com/prometheus/common/version.Revision={{.Revision}}
-        -X github.com/prometheus/common/version.Branch={{.Branch}}
-        -X github.com/prometheus/common/version.BuildUser={{user}}@{{host}}
-        -X github.com/prometheus/common/version.BuildDate={{date "20060102-15:04:05"}}
+  binaries:
+    - name: infiniband_exporter
+      path: .
+  flags: -a -tags netgo
+  ldflags: |
+    -extldflags "-static"
+    -X github.com/prometheus/common/version.Version={{.Version}}
+    -X github.com/prometheus/common/version.Revision={{.Revision}}
+    -X github.com/prometheus/common/version.Branch={{.Branch}}
+    -X github.com/prometheus/common/version.BuildUser={{user}}@{{host}}
+    -X github.com/prometheus/common/version.BuildDate={{date "20060102-15:04:05"}}
 tarball:
-    files:
-        - LICENSE
-        - CHANGELOG.md
+  files:
+    - LICENSE
+    - CHANGELOG.md
 crossbuild:
   platforms:
     - linux/amd64
