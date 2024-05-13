@@ -34,7 +34,8 @@ func TestParseIBSWInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal("Unable to read fixture")
 	}
-	data, err := parse_ibswinfo(out, log.NewNopLogger())
+	data := Ibswinfo{}
+	err = parse_ibswinfo(out, &data, log.NewNopLogger())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -101,7 +102,8 @@ func TestParseIBSWInfoFailedPSU(t *testing.T) {
 	if err != nil {
 		t.Fatal("Unable to read fixture")
 	}
-	data, err := parse_ibswinfo(out, log.NewNopLogger())
+	data := Ibswinfo{}
+	err = parse_ibswinfo(out, &data, log.NewNopLogger())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -189,7 +191,8 @@ func TestParseIBSWInfoErrors(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Unable to read fixture %s", test)
 		}
-		_, err = parse_ibswinfo(out, log.NewNopLogger())
+		data := Ibswinfo{}
+		err = parse_ibswinfo(out, &data, log.NewNopLogger())
 		if err == nil {
 			t.Errorf("Expected an error for test %s(%d)", test, i)
 		}
@@ -282,8 +285,8 @@ func TestIbswinfoCollector(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 44 {
-		t.Errorf("Unexpected collection count %d, expected 44", val)
+	} else if val != 50 {
+		t.Errorf("Unexpected collection count %d, expected 50", val)
 	}
 	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
 		"infiniband_switch_power_supply_status_info", "infiniband_switch_power_supply_dc_power_status_info",
@@ -314,8 +317,8 @@ func TestIbswinfoCollectorMissingStatus(t *testing.T) {
 	gatherers := setupGatherer(collector)
 	if val, err := testutil.GatherAndCount(gatherers); err != nil {
 		t.Errorf("Unexpected error: %v", err)
-	} else if val != 37 {
-		t.Errorf("Unexpected collection count %d, expected 37", val)
+	} else if val != 43 {
+		t.Errorf("Unexpected collection count %d, expected 43", val)
 	}
 }
 

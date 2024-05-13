@@ -42,6 +42,9 @@ type IbswinfoCollector struct {
 	devices              *[]InfinibandDevice
 	logger               log.Logger
 	collector            string
+	Duration             *prometheus.Desc
+	Error                *prometheus.Desc
+	Timeout              *prometheus.Desc
 	HardwareInfo         *prometheus.Desc
 	Uptime               *prometheus.Desc
 	PowerSupplyStatus    *prometheus.Desc
@@ -64,6 +67,9 @@ type Ibswinfo struct {
 	Temp            float64
 	FanStatus       string
 	Fans            []SwitchFan
+	duration        float64
+	error           float64
+	timeout         float64
 }
 
 type SwitchPowerSupply struct {
@@ -88,6 +94,12 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 		devices:   devices,
 		logger:    log.With(logger, "collector", collector),
 		collector: collector,
+		Duration: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_duration_seconds"),
+			"Duration of collection", []string{"guid", "collector"}, nil),
+		Error: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_error"),
+			"Indicates if collect error", []string{"guid", "collector"}, nil),
+		Timeout: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "collect_timeout"),
+			"Indicates if collect timeout", []string{"guid", "collector"}, nil),
 		HardwareInfo: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "hardware_info"),
 			"Infiniband switch hardware info", []string{"guid", "firmware_version", "psid", "part_number", "serial_number", "switch"}, nil),
 		Uptime: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "uptime_seconds"),
@@ -110,6 +122,9 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 }
 
 func (s *IbswinfoCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- s.Duration
+	ch <- s.Error
+	ch <- s.Timeout
 	ch <- s.HardwareInfo
 	ch <- s.Uptime
 	ch <- s.PowerSupplyStatus
@@ -128,6 +143,9 @@ func (s *IbswinfoCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(s.HardwareInfo, prometheus.GaugeValue, 1, swinfo.device.GUID,
 			swinfo.FirmwareVersion, swinfo.PSID, swinfo.PartNumber, swinfo.SerialNumber, swinfo.device.Name)
 		ch <- prometheus.MustNewConstMetric(s.Uptime, prometheus.GaugeValue, swinfo.Uptime, swinfo.device.GUID)
+		ch <- prometheus.MustNewConstMetric(s.Duration, prometheus.GaugeValue, swinfo.duration, swinfo.device.GUID, s.collector)
+		ch <- prometheus.MustNewConstMetric(s.Error, prometheus.GaugeValue, swinfo.error, swinfo.device.GUID, s.collector)
+		ch <- prometheus.MustNewConstMetric(s.Timeout, prometheus.GaugeValue, swinfo.timeout, swinfo.device.GUID, s.collector)
 		for _, psu := range swinfo.PowerSupplies {
 			if psu.Status != "" {
 				ch <- prometheus.MustNewConstMetric(s.PowerSupplyStatus, prometheus.GaugeValue, 1, swinfo.device.GUID, psu.ID, psu.Status)
@@ -180,16 +198,20 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 			ctxibswinfo, cancelibswinfo := context.WithTimeout(context.Background(), *ibswinfoTimeout)
 			defer cancelibswinfo()
 			level.Debug(s.logger).Log("msg", "Run ibswinfo", "lid", device.LID)
+			start := time.Now()
 			ibswinfoOut, ibswinfoErr := IbswinfoExec(device.LID, ctxibswinfo)
+			ibswinfoData := Ibswinfo{duration: time.Since(start).Seconds()}
 			if ibswinfoErr == context.DeadlineExceeded {
+				ibswinfoData.timeout = 1
 				level.Error(s.logger).Log("msg", "Timeout collecting ibswinfo data", "guid", device.GUID, "lid", device.LID)
 				timeouts++
 			} else if ibswinfoErr != nil {
+				ibswinfoData.error = 1
 				level.Error(s.logger).Log("msg", "Error collecting ibswinfo data", "err", fmt.Sprintf("%s:%s", ibswinfoErr, ibswinfoOut), "guid", device.GUID, "lid", device.LID)
 				errors++
 			}
 			if ibswinfoErr == nil {
-				ibswinfoData, err := parse_ibswinfo(ibswinfoOut, s.logger)
+				err := parse_ibswinfo(ibswinfoOut, &ibswinfoData, s.logger)
 				if err != nil {
 					level.Error(s.logger).Log("msg", "Error parsing ibswinfo output", "guid", device.GUID, "lid", device.LID)
 					errors++
@@ -235,8 +257,7 @@ func ibswinfo(lid string, ctx context.Context) (string, error) {
 	return stdout.String(), nil
 }
 
-func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
-	var data Ibswinfo
+func parse_ibswinfo(out string, data *Ibswinfo, logger log.Logger) error {
 	data.Temp = math.NaN()
 	lines := strings.Split(out, "\n")
 	psus := make(map[string]SwitchPowerSupply)
@@ -315,7 +336,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				psu.PowerW = powerW
 			} else {
 				level.Error(logger).Log("msg", "Unable to parse power (W)", "err", err, "value", value)
-				return Ibswinfo{}, err
+				return err
 			}
 		}
 		if psuID != "" && dividerCount < 4 {
@@ -327,7 +348,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				data.Temp = temp
 			} else {
 				level.Error(logger).Log("msg", "Unable to parse temperature (C)", "err", err, "value", value)
-				return Ibswinfo{}, err
+				return err
 			}
 		}
 		if key == "fan status" && dividerCount >= 4 {
@@ -352,7 +373,7 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 				fans = append(fans, fan)
 			} else {
 				level.Error(logger).Log("msg", "Unable to parse fan RPM", "err", err, "value", value)
-				return Ibswinfo{}, err
+				return err
 			}
 		}
 	}
@@ -362,5 +383,5 @@ func parse_ibswinfo(out string, logger log.Logger) (Ibswinfo, error) {
 	}
 	data.PowerSupplies = powerSupplies
 	data.Fans = fans
-	return data, nil
+	return nil
 }
