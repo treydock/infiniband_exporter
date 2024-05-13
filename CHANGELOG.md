@@ -1,3 +1,8 @@
+## 0.9.0 / 2024-05-13
+
+* Update to Go 1.22 and update dependencies (#23)
+* Add metrics for per-device collection duration, error and timeout indicators (#22)
+
 ## 0.8.0 / 2024-02-27
 
 * Ensure the full HCA name is included in "hca" and "uplink" labels (#21)
