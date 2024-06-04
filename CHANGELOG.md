@@ -1,3 +1,7 @@
+## 0.10.0-rc.0 / 2024-06-04
+
+* Support TLS and basic auth (#25)
+
 ## 0.9.0 / 2024-05-13
 
 * Update to Go 1.22 and update dependencies (#23)
