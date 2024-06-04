@@ -28,6 +28,8 @@ import (
 	"github.com/prometheus/common/promlog"
 	"github.com/prometheus/common/promlog/flag"
 	"github.com/prometheus/common/version"
+	"github.com/prometheus/exporter-toolkit/web"
+	webflag "github.com/prometheus/exporter-toolkit/web/kingpinflag"
 	"github.com/treydock/infiniband_exporter/collectors"
 )
 
@@ -39,8 +41,8 @@ var (
 	runOnce                = kingpin.Flag("exporter.runonce", "Run exporter once and write metrics to file").Default("false").Bool()
 	output                 = kingpin.Flag("exporter.output", "Output file to write metrics to when using runonce").Default("").String()
 	lockFile               = kingpin.Flag("exporter.lockfile", "Lock file path").Default("/tmp/infiniband_exporter.lock").String()
-	listenAddress          = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9315").String()
 	disableExporterMetrics = kingpin.Flag("web.disable-exporter-metrics", "Exclude metrics about the exporter (promhttp_*, process_*, go_*)").Default("false").Bool()
+	toolkitFlags           = webflag.AddFlags(kingpin.CommandLine, ":9315")
 )
 
 func setupGathers(runonce bool, logger log.Logger) prometheus.Gatherer {
@@ -127,7 +129,6 @@ func run(logger log.Logger) error {
 	}
 	level.Info(logger).Log("msg", "Starting infiniband_exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
-	level.Info(logger).Log("msg", "Starting Server", "address", *listenAddress)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		//nolint:errcheck
@@ -140,8 +141,12 @@ func run(logger log.Logger) error {
              </html>`))
 	})
 	http.Handle(metricsEndpoint, metricsHandler(logger))
-	err := http.ListenAndServe(*listenAddress, nil)
-	return err
+	srv := &http.Server{}
+	if err := web.ListenAndServe(srv, toolkitFlags, logger); err != nil {
+		level.Error(logger).Log("msg", "Error starting HTTP server", "err", err)
+		return err
+	}
+	return nil
 }
 
 func main() {
