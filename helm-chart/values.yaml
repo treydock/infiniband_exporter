@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: treydock/infiniband_exporter
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -41,7 +41,9 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 9315
+
+containerPort: 9315
 
 ingress:
   enabled: false
