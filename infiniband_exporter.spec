@@ -1,5 +1,5 @@
 Name:           infiniband_exporter
-Version:        0.10.0-rc1
+Version:        0.10.0
 Release:        1
 Summary:        The InfiniBand exporter collects counters from InfiniBand switches and HCAs
 
