@@ -112,6 +112,16 @@ systemctl daemon-reload
 systemctl start infiniband_exporter
 ```
 
+## Using the service file
+Uses [systemd's service templating feature](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#Service%20Templates) and [specifiers](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Specifiers).
+
+```
+# Run as root
+systemctl start infiniband_exporter@root.service
+# Run as non-root, requires adding --sudo to options and other sudo steps above
+systemctl start infiniband_exporter@infiniband_exporter.service
+```
+
 ## Build from source
 
 To produce the `infiniband_exporter` binary:
