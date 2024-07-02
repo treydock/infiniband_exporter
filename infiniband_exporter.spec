@@ -25,7 +25,7 @@ make build
 
 %install
 install -Dpm 0755 %{name} %{buildroot}%{_sbindir}/%{name}
-install -Dpm 0644 systemd/%{name}@.service %{buildroot}%{_unitdir}/%{name}.service
+install -Dpm 0644 systemd/%{name}@.service %{buildroot}%{_unitdir}/%{name}@.service
 install -Dpm 0644 systemd/%{name}.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 
 %clean
