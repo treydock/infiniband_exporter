@@ -7,7 +7,7 @@ License:        Apache License
 Source0:        %{name}-%{version}.tar.gz
 URL:            https://github.com/treydock/infiniband_exporter
 
-Requires:       systemd datacenter-gpu-manager
+Requires:       infiniband-diags
 
 %description
 
