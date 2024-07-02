@@ -101,24 +101,14 @@ useradd -r -d /var/lib/infiniband_exporter -s /sbin/nologin -M -g infiniband_exp
 Install compiled binaries after extracting tar.gz from release page.
 
 ```
-cp /tmp/infiniband_exporter /usr/local/bin/infiniband_exporter
+cp /tmp/infiniband_exporter /usr/sbin/infiniband_exporter
 ```
 
-Add systemd unit file and start service. Modify the `ExecStart` with desired flags.
-
+Add systemd unit file and start service. Modify the `ExecStart` or `/etc/sysconfig/infiniband_exporter` with desired flags.
+The unit file uses [systemd's service templating feature](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#Service%20Templates) and [specifiers](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Specifiers).
 ```
-cp systemd/infiniband_exporter.service /etc/systemd/system/infiniband_exporter.service
+cp systemd/infiniband_exporter@.service /etc/systemd/system/infiniband_exporter@.service
 systemctl daemon-reload
-systemctl start infiniband_exporter
-```
-
-## Using the service file
-Uses [systemd's service templating feature](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#Service%20Templates) and [specifiers](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Specifiers).
-
-```
-# Run as root
-systemctl start infiniband_exporter@root.service
-# Run as non-root, requires adding --sudo to options and other sudo steps above
 systemctl start infiniband_exporter@infiniband_exporter.service
 ```
 

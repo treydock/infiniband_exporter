@@ -5,7 +5,7 @@ After=basic.target network.target
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/infiniband_exporter
-ExecStart=/usr/local/bin/infiniband_exporter $OPTIONS
+ExecStart=/usr/sbin/infiniband_exporter $OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 User=%I
 Group=%I
