@@ -11,6 +11,10 @@ RUN apt update && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/
 RUN apt update && \
     apt install -y curl && \
+    curl -L -O https://www.mellanox.com/downloads/MFT/mft-4.29.0-131-x86_64-deb.tgz && \
+    tar xf mft-4.29.0-131-x86_64-deb.tgz && \
+    ./mft-4.29.0-131-x86_64-deb/install.sh --without-kernel --without-autocomplete && \
+    rm -rf mft-4.29.0-131-x86_64-deb* && \
     curl -o /usr/bin/ibswinfo https://raw.githubusercontent.com/stanford-rc/ibswinfo/main/ibswinfo.sh && \
     chmod +x /usr/bin/ibswinfo && \
     apt purge -y curl && \
