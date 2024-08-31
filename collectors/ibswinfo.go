@@ -122,9 +122,11 @@ func NewIbswinfoCollector(devices *[]InfinibandDevice, runonce bool, logger log.
 }
 
 func (s *IbswinfoCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- s.Duration
-	ch <- s.Error
-	ch <- s.Timeout
+	// Do not describe as will conflict with switch but label set is unique
+	// So collect will work
+	// ch <- s.Duration
+	// ch <- s.Error
+	// ch <- s.Timeout
 	ch <- s.HardwareInfo
 	ch <- s.Uptime
 	ch <- s.PowerSupplyStatus
