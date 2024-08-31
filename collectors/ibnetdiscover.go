@@ -36,7 +36,7 @@ var (
 	nodeNameMap          = kingpin.Flag("ibnetdiscover.node-name-map", "Path to node name map file").Default("").String()
 	ibnetdiscoverTimeout = kingpin.Flag("ibnetdiscover.timeout", "Timeout for ibnetdiscover execution").Default("20s").Duration()
 	// IB Lane Rate Specification: {signaling rate, effective rate}, Gbps
-	// 	https://en.wikipedia.org/wiki/InfiniBand#Performance
+	//	https://en.wikipedia.org/wiki/InfiniBand#Performance
 	laneRates = map[string][]float64{
 		"SDR":   {2.5, 2},
 		"DDR":   {5, 4},
@@ -66,6 +66,8 @@ type InfinibandUplink struct {
 	PortNumber string
 	GUID       string
 	Name       string
+	Rate       float64
+	RawRate    float64
 }
 
 type IBNetDiscover struct {
@@ -173,15 +175,17 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 		if err != nil {
 			level.Error(logger).Log("msg", "Unable to parse speed", "width", items[4], "rate", items[5], "type", device.Type, "guid", device.GUID)
 			return nil, nil, err
-		} else {
-			device.Rate = effectiveRate
-			device.RawRate = rawRate
 		}
-
 		portName, uplinkName, err := parseNames(line)
 		if err != nil {
 			level.Error(logger).Log("msg", "Unable to parse names", "err", err, "type", device.Type, "guid", device.GUID, "line", line)
 			return nil, nil, err
+		}
+		// Only associate rates with device if HCA since switch
+		// will associate with uplinks
+		if device.Type == "CA" {
+			device.Rate = effectiveRate
+			device.RawRate = rawRate
 		}
 		if uplinkName != "" {
 			uplink.Type = items[7]
@@ -189,6 +193,8 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			uplink.PortNumber = items[9]
 			uplink.GUID = items[10]
 			uplink.Name = uplinkName
+			uplink.Rate = effectiveRate
+			uplink.RawRate = rawRate
 			device.Uplinks[portNumber] = uplink
 		}
 		device.Name = portName

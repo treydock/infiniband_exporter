@@ -155,10 +155,10 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 			"Infiniband switch port PortVLMappingErrors", labels, nil),
 		PortLoopingErrors: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_looping_errors_total"),
 			"Infiniband switch port PortLoopingErrors", labels, nil),
-		Rate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "rate_bytes_per_second"),
-			"Infiniband switch rate", []string{"guid"}, nil),
-		RawRate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "raw_rate_bytes_per_second"),
-			"Infiniband switch raw rate", []string{"guid"}, nil),
+		Rate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_rate_bytes_per_second"),
+			"Infiniband switch port rate", labels, nil),
+		RawRate: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_raw_rate_bytes_per_second"),
+			"Infiniband switch port raw rate", labels, nil),
 		Uplink: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "uplink_info"),
 			"Infiniband switch uplink information", append(labels, []string{"switch", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "info"),
@@ -296,13 +296,13 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 	if *switchCollectBase {
 		for _, device := range *s.devices {
 			metric := metrics[device.GUID]
-			ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, device.Rate, device.GUID)
-			ch <- prometheus.MustNewConstMetric(s.RawRate, prometheus.GaugeValue, device.RawRate, device.GUID)
 			ch <- prometheus.MustNewConstMetric(s.Info, prometheus.GaugeValue, 1, device.GUID, device.Name, device.LID)
 			ch <- prometheus.MustNewConstMetric(s.Duration, prometheus.GaugeValue, metric.duration, device.GUID, s.collector)
 			ch <- prometheus.MustNewConstMetric(s.Timeout, prometheus.GaugeValue, metric.timeout, device.GUID, s.collector)
 			ch <- prometheus.MustNewConstMetric(s.Error, prometheus.GaugeValue, metric.error, device.GUID, s.collector)
 			for port, uplink := range device.Uplinks {
+				ch <- prometheus.MustNewConstMetric(s.Rate, prometheus.GaugeValue, uplink.Rate, device.GUID, port)
+				ch <- prometheus.MustNewConstMetric(s.RawRate, prometheus.GaugeValue, uplink.RawRate, device.GUID, port)
 				ch <- prometheus.MustNewConstMetric(s.Uplink, prometheus.GaugeValue, 1, device.GUID, port, device.Name, uplink.Name, uplink.GUID, uplink.Type, uplink.PortNumber, uplink.LID)
 			}
 		}
