@@ -1,3 +1,8 @@
+## 0.10.0-rc.1 / 2024-09-06
+
+* Support TLS and basic auth (#25)
+* Address issues where ibswinfo does not work (#32)
+
 ## 0.10.0-rc.0 / 2024-06-04
 
 * Support TLS and basic auth (#25)
