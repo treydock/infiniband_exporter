@@ -4,8 +4,11 @@ Wants=basic.target
 After=basic.target network.target
 
 [Service]
-ExecStart=/usr/local/bin/infiniband_exporter --web.listen-address=:9315
+EnvironmentFile=-/etc/sysconfig/infiniband_exporter
+ExecStart=/usr/sbin/infiniband_exporter $OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
+User=%I
+Group=%I
 KillMode=process
 Restart=always
 
