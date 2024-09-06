@@ -135,32 +135,32 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
 		{Type: "CA", LID: "1432", GUID: "0x506b4b0300cc02a6", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "p0001 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
-				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01"},
+				"1": {Type: "SW", LID: "2052", PortNumber: "35", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
 		},
 		{Type: "CA", LID: "133", GUID: "0x7cfe9003003b4b96", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0002 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
-				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
+				"1": {Type: "SW", LID: "1719", PortNumber: "11", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
 		},
 		{Type: "CA", LID: "134", GUID: "0x7cfe9003003b4bde", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "o0001 HCA-1",
 			Uplinks: map[string]InfinibandUplink{
-				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01"},
+				"1": {Type: "SW", LID: "1719", PortNumber: "10", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
 		},
 	}
 
 	expectSwitches := []InfinibandDevice{
-		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i4l1s01",
+		{Type: "SW", LID: "2052", GUID: "0x506b4b03005c2740", Name: "ib-i4l1s01",
 			Uplinks: map[string]InfinibandUplink{
-				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001 HCA-1"},
+				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001 HCA-1", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
 		},
-		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10, Name: "ib-i1l1s01",
+		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{
-				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01"},
-				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001 HCA-1"},
-				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002 HCA-1"},
+				"1":  {Type: "SW", LID: "1516", PortNumber: "1", GUID: "0x7cfe900300b07320", Name: "ib-i1l2s01", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
+				"10": {Type: "CA", LID: "134", PortNumber: "1", GUID: "0x7cfe9003003b4bde", Name: "o0001 HCA-1", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
+				"11": {Type: "CA", LID: "133", PortNumber: "1", GUID: "0x7cfe9003003b4b96", Name: "o0002 HCA-1", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
 		},
 	}
@@ -199,23 +199,23 @@ func TestIbnetdiscoverParse2(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
 		{Type: "CA", LID: "78", GUID: "0x946dae0300630bfe", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "Mellanox Technologies Aggregation Node",
 			Uplinks: map[string]InfinibandUplink{
-				"1": {Type: "SW", LID: "51", PortNumber: "81", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+				"1": {Type: "SW", LID: "51", PortNumber: "81", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000},
 			},
 		},
 		{Type: "CA", LID: "88", GUID: "0xb83fd20300da1138", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "worker20 mlx5_3",
 			Uplinks: map[string]InfinibandUplink{
-				"1": {Type: "SW", LID: "51", PortNumber: "79", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01"},
+				"1": {Type: "SW", LID: "51", PortNumber: "79", GUID: "0x946dae0300630bf6", Name: "5FB0405-leaf-IB01", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000},
 			},
 		},
 	}
 
 	expectSwitches := []InfinibandDevice{
-		{Type: "SW", LID: "478", GUID: "0x0002c9020040f160", Rate: 8 * 4 * 125000000, RawRate: 10 * 4 * 125000000, Name: "Infiniscale-IV Mellanox Technologies",
+		{Type: "SW", LID: "478", GUID: "0x0002c9020040f160", Name: "Infiniscale-IV Mellanox Technologies",
 			Uplinks: map[string]InfinibandUplink{},
 		},
-		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "5FB0406-spine-IB03",
+		{Type: "SW", LID: "9", GUID: "0x946dae030053ec1a", Name: "5FB0406-spine-IB03",
 			Uplinks: map[string]InfinibandUplink{
-				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node"},
+				"81": {Type: "CA", LID: "60", PortNumber: "1", GUID: "0x946dae0300630bfe", Name: "Mellanox Technologies Aggregation Node", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000},
 			},
 		},
 	}
