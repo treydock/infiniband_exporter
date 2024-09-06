@@ -1,5 +1,5 @@
 # Needs to be defined before including Makefile.common to auto-generate targets
-DOCKER_ARCHS ?= amd64 ppc64le s390x
+DOCKER_ARCHS ?= amd64 ppc64le
 DOCKER_REPO	 ?= treydock
 export GOPATH ?= $(firstword $(subst :, ,$(shell go env GOPATH)))
 
