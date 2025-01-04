@@ -1,6 +1,6 @@
 ARG ARCH="amd64"
 ARG OS="linux"
-FROM ${ARCH}/debian:12
+FROM --platform=linux/${ARCH} debian:12
 LABEL maintainer="Trey Dockendorf <treydock@gmail.com>"
 ARG ARCH="amd64"
 ARG OS="linux"
