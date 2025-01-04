@@ -87,8 +87,8 @@ func TestHCACollector(t *testing.T) {
 		infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 		# HELP infiniband_hca_port_receive_data_bytes_total Infiniband HCA port PortRcvData
 		# TYPE infiniband_hca_port_receive_data_bytes_total counter
-		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 37225401952885
-		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9752484588300
+		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 148901607811540
+		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 39009938353200
 		# HELP infiniband_hca_port_receive_errors_total Infiniband HCA port PortRcvErrors
 		# TYPE infiniband_hca_port_receive_errors_total counter
 		infiniband_hca_port_receive_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -115,8 +115,8 @@ func TestHCACollector(t *testing.T) {
 		infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 		# HELP infiniband_hca_port_transmit_data_bytes_total Infiniband HCA port PortXmitData
 		# TYPE infiniband_hca_port_transmit_data_bytes_total counter
-		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 37108676853855
-		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9049592493976
+		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 148434707415420
+		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 36198369975904
 		# HELP infiniband_hca_port_transmit_discards_total Infiniband HCA port PortXmitDiscards
 		# TYPE infiniband_hca_port_transmit_discards_total counter
 		infiniband_hca_port_transmit_discards_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -250,8 +250,8 @@ func TestHCACollectorFull(t *testing.T) {
 		infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 		# HELP infiniband_hca_port_receive_data_bytes_total Infiniband HCA port PortRcvData
 		# TYPE infiniband_hca_port_receive_data_bytes_total counter
-		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 37225401952885
-		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9752484588300
+		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 148901607811540
+		infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 39009938353200
 		# HELP infiniband_hca_port_receive_errors_total Infiniband HCA port PortRcvErrors
 		# TYPE infiniband_hca_port_receive_errors_total counter
 		infiniband_hca_port_receive_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -278,8 +278,8 @@ func TestHCACollectorFull(t *testing.T) {
 		infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 		# HELP infiniband_hca_port_transmit_data_bytes_total Infiniband HCA port PortXmitData
 		# TYPE infiniband_hca_port_transmit_data_bytes_total counter
-		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 37108676853855
-		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9049592493976
+		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 148434707415420
+		infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 36198369975904
 		# HELP infiniband_hca_port_transmit_discards_total Infiniband HCA port PortXmitDiscards
 		# TYPE infiniband_hca_port_transmit_discards_total counter
 		infiniband_hca_port_transmit_discards_total{guid="0x7cfe9003003b4b96",port="1"} 0

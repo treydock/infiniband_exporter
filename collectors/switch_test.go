@@ -92,9 +92,9 @@ func TestSwitchCollector(t *testing.T) {
 		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_data_bytes_total Infiniband switch port PortRcvData
 		# TYPE infiniband_switch_port_receive_data_bytes_total counter
-		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178762341961629
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 12279028775751
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 39078804993378
+		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 715049367846516
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 49116115103004
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 156315219973512
 		# HELP infiniband_switch_port_receive_errors_total Infiniband switch port PortRcvErrors
 		# TYPE infiniband_switch_port_receive_errors_total counter
 		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1"} 0
@@ -127,9 +127,9 @@ func TestSwitchCollector(t *testing.T) {
 		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_data_bytes_total Infiniband switch port PortXmitData
 		# TYPE infiniband_switch_port_transmit_data_bytes_total counter
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178791657177235
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 36298026860928
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 26006570014026
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 715166628708940
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 145192107443712
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 104026280056104
 		# HELP infiniband_switch_port_transmit_discards_total Infiniband switch port PortXmitDiscards
 		# TYPE infiniband_switch_port_transmit_discards_total counter
 		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1"} 20046
@@ -288,9 +288,9 @@ func TestSwitchCollectorFull(t *testing.T) {
 		infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_receive_data_bytes_total Infiniband switch port PortRcvData
 		# TYPE infiniband_switch_port_receive_data_bytes_total counter
-		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178762341961629
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 12279028775751
-		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 39078804993378
+		infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 715049367846516
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 49116115103004
+		infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 156315219973512
 		# HELP infiniband_switch_port_receive_errors_total Infiniband switch port PortRcvErrors
 		# TYPE infiniband_switch_port_receive_errors_total counter
 		infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1"} 0
@@ -323,9 +323,9 @@ func TestSwitchCollectorFull(t *testing.T) {
 		infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 		# HELP infiniband_switch_port_transmit_data_bytes_total Infiniband switch port PortXmitData
 		# TYPE infiniband_switch_port_transmit_data_bytes_total counter
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 178791657177235
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 36298026860928
-		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 26006570014026
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 715166628708940
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 145192107443712
+		infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 104026280056104
 		# HELP infiniband_switch_port_transmit_discards_total Infiniband switch port PortXmitDiscards
 		# TYPE infiniband_switch_port_transmit_discards_total counter
 		infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1"} 20046

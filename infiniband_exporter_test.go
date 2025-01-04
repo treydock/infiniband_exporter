@@ -93,9 +93,9 @@ infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0"
 infiniband_switch_port_receive_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 # HELP infiniband_switch_port_receive_data_bytes_total Infiniband switch port PortRcvData
 # TYPE infiniband_switch_port_receive_data_bytes_total counter
-infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 1.78762341961629e+14
-infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 1.2279028775751e+13
-infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 3.9078804993378e+13
+infiniband_switch_port_receive_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 7.15049367846516e+14
+infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 4.9116115103004e+13
+infiniband_switch_port_receive_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 1.56315219973512e+14
 # HELP infiniband_switch_port_receive_errors_total Infiniband switch port PortRcvErrors
 # TYPE infiniband_switch_port_receive_errors_total counter
 infiniband_switch_port_receive_errors_total{guid="0x506b4b03005c2740",port="1"} 0
@@ -128,9 +128,9 @@ infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0
 infiniband_switch_port_transmit_constraint_errors_total{guid="0x7cfe9003009ce5b0",port="2"} 0
 # HELP infiniband_switch_port_transmit_data_bytes_total Infiniband switch port PortXmitData
 # TYPE infiniband_switch_port_transmit_data_bytes_total counter
-infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 1.78791657177235e+14
-infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 3.6298026860928e+13
-infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 2.6006570014026e+13
+infiniband_switch_port_transmit_data_bytes_total{guid="0x506b4b03005c2740",port="1"} 7.1516662870894e+14
+infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="1"} 1.45192107443712e+14
+infiniband_switch_port_transmit_data_bytes_total{guid="0x7cfe9003009ce5b0",port="2"} 1.04026280056104e+14
 # HELP infiniband_switch_port_transmit_discards_total Infiniband switch port PortXmitDiscards
 # TYPE infiniband_switch_port_transmit_discards_total counter
 infiniband_switch_port_transmit_discards_total{guid="0x506b4b03005c2740",port="1"} 20046
@@ -261,8 +261,8 @@ infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4b96",po
 infiniband_hca_port_receive_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 # HELP infiniband_hca_port_receive_data_bytes_total Infiniband HCA port PortRcvData
 # TYPE infiniband_hca_port_receive_data_bytes_total counter
-infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 3.7225401952885e+13
-infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9.7524845883e+12
+infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 1.4890160781154e+14
+infiniband_hca_port_receive_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 3.90099383532e+13
 # HELP infiniband_hca_port_receive_errors_total Infiniband HCA port PortRcvErrors
 # TYPE infiniband_hca_port_receive_errors_total counter
 infiniband_hca_port_receive_errors_total{guid="0x7cfe9003003b4b96",port="1"} 0
@@ -289,8 +289,8 @@ infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4b96",p
 infiniband_hca_port_transmit_constraint_errors_total{guid="0x7cfe9003003b4bde",port="1"} 0
 # HELP infiniband_hca_port_transmit_data_bytes_total Infiniband HCA port PortXmitData
 # TYPE infiniband_hca_port_transmit_data_bytes_total counter
-infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 3.7108676853855e+13
-infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 9.049592493976e+12
+infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4b96",port="1"} 1.4843470741542e+14
+infiniband_hca_port_transmit_data_bytes_total{guid="0x7cfe9003003b4bde",port="1"} 3.6198369975904e+13
 # HELP infiniband_hca_port_transmit_discards_total Infiniband HCA port PortXmitDiscards
 # TYPE infiniband_hca_port_transmit_discards_total counter
 infiniband_hca_port_transmit_discards_total{guid="0x7cfe9003003b4b96",port="1"} 0
