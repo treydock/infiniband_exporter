@@ -119,6 +119,9 @@ func perfqueryParse(device InfinibandDevice, out string, logger log.Logger) ([]P
 				errors++
 				continue
 			}
+			if strings.HasSuffix(items[0], "Data") {
+				val = val * 4
+			}
 			f.SetFloat(val)
 		}
 		portCounters[port] = counter

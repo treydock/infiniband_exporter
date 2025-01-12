@@ -43,8 +43,8 @@ func TestPerfqueryParse(t *testing.T) {
 		{
 			device:                       perfqueryTestDevice,
 			PortSelect:                   "1",
-			PortXmitData:                 36298026860928,
-			PortRcvData:                  12279028775751,
+			PortXmitData:                 145192107443712,
+			PortRcvData:                  49116115103004,
 			PortXmitPkts:                 101733204203,
 			PortRcvPkts:                  32262508468,
 			PortUnicastXmitPkts:          101708165289,
@@ -75,8 +75,8 @@ func TestPerfqueryParse(t *testing.T) {
 		{
 			device:                       perfqueryTestDevice,
 			PortSelect:                   "2",
-			PortXmitData:                 26006570014026,
-			PortRcvData:                  39078804993378,
+			PortXmitData:                 104026280056104,
+			PortRcvData:                  156315219973512,
 			PortXmitPkts:                 122978948297,
 			PortRcvPkts:                  93660802641,
 			PortUnicastXmitPkts:          122978948297,
@@ -109,7 +109,10 @@ func TestPerfqueryParse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	counters, errors := perfqueryParse(perfqueryTestDevice, out, log.NewNopLogger())
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	// logger := log.NewNopLogger()
+	counters, errors := perfqueryParse(perfqueryTestDevice, out, logger)
 	if errors != 0 {
 		t.Errorf("Unexpected errors")
 		return
