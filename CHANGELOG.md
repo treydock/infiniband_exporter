@@ -1,3 +1,11 @@
+## 0.10.0 / 2025-01-12
+
+* Support TLS and basic auth (#25)
+* Address issues where ibswinfo does not work (#32)
+* Add Helm chart (#28)
+* [BREAKING] Associate switch rate with port (#31)
+* Ensure proper value for data rates from perfquery (#34)
+
 ## 0.10.0-rc.1 / 2024-09-06
 
 * Support TLS and basic auth (#25)
