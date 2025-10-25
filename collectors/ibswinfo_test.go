@@ -298,6 +298,30 @@ func TestIbswinfoCollector(t *testing.T) {
 	}
 }
 
+func TestIbswinfoCollectorExcludeNodeName(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{"--ibswinfo.exclude-node-name=ib-i4l1s01"}); err != nil {
+		t.Fatal(err)
+	}
+	IbswinfoExec = func(lid string, ctx context.Context) (string, error) {
+		if lid == "1719" {
+			out, err := ReadFixture("ibswinfo", "test1")
+			return out, err
+		} else if lid == "2052" {
+			out, err := ReadFixture("ibswinfo", "test2")
+			return out, err
+		} else {
+			return "", nil
+		}
+	}
+	collector := NewIbswinfoCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	if val, err := testutil.GatherAndCount(gatherers); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	} else if val != 26 {
+		t.Errorf("Unexpected collection count %d, expected 26", val)
+	}
+}
+
 func TestIbswinfoCollectorMissingStatus(t *testing.T) {
 	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
 		t.Fatal(err)
