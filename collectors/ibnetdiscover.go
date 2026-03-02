@@ -51,13 +51,14 @@ var (
 )
 
 type InfinibandDevice struct {
-	Type    string
-	LID     string
-	GUID    string
-	Rate    float64
-	RawRate float64
-	Name    string
-	Uplinks map[string]InfinibandUplink
+	Type      string
+	LID       string
+	GUID      string
+	Rate      float64
+	RawRate   float64
+	Name      string
+	Uplinks   map[string]InfinibandUplink
+	DownPorts []string
 }
 
 type InfinibandUplink struct {
@@ -137,7 +138,27 @@ func ibnetdiscoverParse(out string, logger log.Logger) (*[]InfinibandDevice, *[]
 			continue
 		}
 		if items[5] == "???" {
-			level.Debug(logger).Log("msg", "Skipping line that is not connected", "line", line)
+			if !*switchCollectPortState {
+				level.Debug(logger).Log("msg", "Skipping line that is not connected", "line", line)
+				continue
+			}
+			guid := items[3]
+			portNumber := items[2]
+			device, ok := devices[guid]
+			if !ok {
+				device.Uplinks = make(map[string]InfinibandUplink)
+			}
+			device.Type = items[0]
+			device.LID = items[1]
+			device.GUID = guid
+			portName, _, err := parseNames(line)
+			if err != nil {
+				level.Debug(logger).Log("msg", "Unable to parse name for down port, skipping", "line", line)
+				continue
+			}
+			device.Name = portName
+			device.DownPorts = append(device.DownPorts, portNumber)
+			devices[guid] = device
 			continue
 		}
 		// check the last item, because name may have space so that it is split into multiple items

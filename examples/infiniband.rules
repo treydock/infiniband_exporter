@@ -207,6 +207,19 @@ groups:
     expr: sum(infiniband:switch_port_qp1_dropped:irate5m) without (host, port, uplink, uplink_port)
   - record: infiniband:switch_port_qp1_dropped:switch_rate5m
     expr: sum(infiniband:switch_port_qp1_dropped:irate5m) without (host, port, uplink, uplink_port)
+- name: infiniband-port-state
+  rules:
+  - record: infiniband:switch_port_ever_connected
+    expr: max_over_time(infiniband_switch_port_state[30d]) == 1
+  - alert: InfinibandSwitchPortDown
+    expr: infiniband_switch_port_state == 0 and infiniband:switch_port_ever_connected
+    for: 5m
+    labels:
+      severity: warning
+      alertgroup: infiniband
+    annotations:
+      title: InfiniBand switch {{ $labels.switch }} port {{ $labels.port }} is down
+      description: Switch {{ $labels.switch }} ({{ $labels.guid }}) port {{ $labels.port }} link is down
 - name: infiniband
   rules:
   - alert: InfinibandCollectError

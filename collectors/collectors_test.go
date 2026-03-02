@@ -34,6 +34,7 @@ var (
 			Uplinks: map[string]InfinibandUplink{
 				"35": {Type: "CA", LID: "1432", PortNumber: "1", GUID: "0x506b4b0300cc02a6", Name: "p0001 HCA-1", Rate: (25 * 4 * 125000000), RawRate: 1.2890625e+10},
 			},
+			DownPorts: []string{"37"},
 		},
 		{Type: "SW", LID: "1719", GUID: "0x7cfe9003009ce5b0", Name: "ib-i1l1s01",
 			Uplinks: map[string]InfinibandUplink{

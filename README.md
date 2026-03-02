@@ -22,8 +22,13 @@ Collectors are enabled or disabled via `--collector.<name>` and `--no-collector.
 Name | Description | Default
 -----|-------------|--------
 switch | Collect switch port counters | Enabled
+switch.base-metrics | Collect base switch metrics | Enabled
+switch.rcv-err-details | Collect receive error details | Disabled
+switch.port-state | Report switch port link state (1=up, 0=down) | Disabled
 ibswinfo | Collect data on unmanaged switches via ibswinfo (BETA) | Disabled
 hca | Collect HCA port counters | Disabled
+hca.base-metrics | Collect base HCA metrics | Enabled
+hca.rcv-err-details | Collect receive error details | Disabled
 
 If you have a node name map file typically used with Subnet Managers, you can provide that file to the  `--ibnetdiscover.node-name-map` flag.  This will use friendly names for switches.
 
@@ -54,6 +59,14 @@ This feature is considered BETA as it relies on parsing non-machine readable dat
 In the future this exporter may collect the unmanaged switch information directly in a similar way to what ibswinfo is doing.
 
 The collection of `ibswinfo` takes about 2-3 seconds per switch so consider increasing Prometheus scrape timeout or running using `--exporter.runonce` per [Large fabric considerations](#large-fabric-considerations).  Also consider increasing the `--ibswinfo.max-concurrent` to a value greater than the default of 1, but be aware that a value too high will cause timeouts executing concurrent `ibswinfo` commands.
+
+### Port link state monitoring
+
+By default, when a port link goes down the exporter stops emitting metrics for that port (the time series becomes stale). This makes it difficult to alert on link failures in Prometheus.
+
+Enabling `--collector.switch.port-state` adds `infiniband_switch_port_state{guid, switch, port}` — a gauge that reports `1` when up, `0` when down. Disconnected ports (reported as `???` by `ibnetdiscover`) persistently emit `0` on every scrape.
+
+See `examples/infiniband.rules` for recording rules and alert examples.
 
 ### Large fabric considerations
 

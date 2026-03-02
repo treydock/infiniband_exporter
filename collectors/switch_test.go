@@ -550,3 +550,41 @@ func TestSwitchCollectorTimeout(t *testing.T) {
 		t.Errorf("unexpected collecting result:\n%s", err)
 	}
 }
+
+func TestSwitchCollectorPortState(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{"--collector.switch.port-state"}); err != nil {
+		t.Fatal(err)
+	}
+	SetPerfqueryExecs(t, false, false)
+	expected := `
+		# HELP infiniband_switch_port_state Infiniband switch port link state (1=up, 0=down)
+		# TYPE infiniband_switch_port_state gauge
+		infiniband_switch_port_state{guid="0x506b4b03005c2740",port="35",switch="ib-i4l1s01"} 1
+		infiniband_switch_port_state{guid="0x506b4b03005c2740",port="37",switch="ib-i4l1s01"} 0
+		infiniband_switch_port_state{guid="0x7cfe9003009ce5b0",port="1",switch="ib-i1l1s01"} 1
+		infiniband_switch_port_state{guid="0x7cfe9003009ce5b0",port="10",switch="ib-i1l1s01"} 1
+		infiniband_switch_port_state{guid="0x7cfe9003009ce5b0",port="11",switch="ib-i1l1s01"} 1
+	`
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	if err := testutil.GatherAndCompare(gatherers, strings.NewReader(expected),
+		"infiniband_switch_port_state"); err != nil {
+		t.Errorf("unexpected collecting result:\n%s", err)
+	}
+}
+
+func TestSwitchCollectorPortStateDisabled(t *testing.T) {
+	if _, err := kingpin.CommandLine.Parse([]string{}); err != nil {
+		t.Fatal(err)
+	}
+	SetPerfqueryExecs(t, false, false)
+	collector := NewSwitchCollector(&switchDevices, false, log.NewNopLogger())
+	gatherers := setupGatherer(collector)
+	metrics, err := testutil.GatherAndCount(gatherers, "infiniband_switch_port_state")
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if metrics != 0 {
+		t.Errorf("Expected 0 port_state metrics when disabled, got %d", metrics)
+	}
+}

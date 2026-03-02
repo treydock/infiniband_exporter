@@ -195,6 +195,34 @@ func TestIbnetdiscoverParse(t *testing.T) {
 	}
 }
 
+func TestIbnetdiscoverParsePortState(t *testing.T) {
+	*switchCollectPortState = true
+	defer func() { *switchCollectPortState = false }()
+	out, err := ReadFixture("ibnetdiscover", "test")
+	if err != nil {
+		t.Fatal("Unable to read fixture")
+	}
+	w := log.NewSyncWriter(os.Stderr)
+	logger := log.NewLogfmtLogger(w)
+	switches, _, err := ibnetdiscoverParse(out, logger)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err.Error())
+		return
+	}
+	var found bool
+	for _, sw := range *switches {
+		if sw.GUID == "0x506b4b03005c2740" {
+			found = true
+			if len(sw.DownPorts) != 1 || sw.DownPorts[0] != "37" {
+				t.Errorf("Expected DownPorts [37], got %v", sw.DownPorts)
+			}
+		}
+	}
+	if !found {
+		t.Error("Switch 0x506b4b03005c2740 not found")
+	}
+}
+
 func TestIbnetdiscoverParse2(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
 		{Type: "CA", LID: "78", GUID: "0x946dae0300630bfe", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "Mellanox Technologies Aggregation Node",

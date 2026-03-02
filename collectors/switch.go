@@ -28,9 +28,10 @@ import (
 )
 
 var (
-	CollectSwitch       = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
-	switchCollectBase   = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
-	switchCollectRcvErr = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
+	CollectSwitch          = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
+	switchCollectBase      = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
+	switchCollectRcvErr    = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
+	switchCollectPortState = kingpin.Flag("collector.switch.port-state", "Report port link state (1=up, 0=down)").Default("false").Bool()
 )
 
 type SwitchCollector struct {
@@ -72,6 +73,7 @@ type SwitchCollector struct {
 	RawRate                      *prometheus.Desc
 	Uplink                       *prometheus.Desc
 	Info                         *prometheus.Desc
+	PortState                    *prometheus.Desc
 }
 
 type SwitchMetrics struct {
@@ -163,6 +165,8 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 			"Infiniband switch uplink information", append(labels, []string{"switch", "uplink", "uplink_guid", "uplink_type", "uplink_port", "uplink_lid"}...), nil),
 		Info: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "info"),
 			"Infiniband switch information", []string{"guid", "switch", "lid"}, nil),
+		PortState: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_state"),
+			"Infiniband switch port link state (1=up, 0=down)", labels, nil),
 	}
 }
 
@@ -202,6 +206,7 @@ func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- s.RawRate
 	ch <- s.Uplink
 	ch <- s.Info
+	ch <- s.PortState
 }
 
 func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
@@ -313,6 +318,16 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(s.Duration, prometheus.GaugeValue, metric.rcvErrDuration, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
 			ch <- prometheus.MustNewConstMetric(s.Timeout, prometheus.GaugeValue, metric.rcvErrTimeout, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
 			ch <- prometheus.MustNewConstMetric(s.Error, prometheus.GaugeValue, metric.rcvErrError, device.GUID, fmt.Sprintf("%s-rcv-err", s.collector))
+		}
+	}
+	if *switchCollectPortState {
+		for _, device := range *s.devices {
+			for port := range device.Uplinks {
+				ch <- prometheus.MustNewConstMetric(s.PortState, prometheus.GaugeValue, 1, device.GUID, device.Name, port)
+			}
+			for _, port := range device.DownPorts {
+				ch <- prometheus.MustNewConstMetric(s.PortState, prometheus.GaugeValue, 0, device.GUID, device.Name, port)
+			}
 		}
 	}
 	ch <- prometheus.MustNewConstMetric(collectErrors, prometheus.GaugeValue, errors, s.collector)
