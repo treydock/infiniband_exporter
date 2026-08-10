@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,11 +32,12 @@ import (
 )
 
 var (
-	CollectIbswinfo       = kingpin.Flag("collector.ibswinfo", "Enable ibswinfo data collection (BETA)").Default("false").Bool()
-	ibswinfoPath          = kingpin.Flag("ibswinfo.path", "Path to ibswinfo").Default("ibswinfo").String()
-	ibswinfoTimeout       = kingpin.Flag("ibswinfo.timeout", "Timeout for ibswinfo execution").Default("10s").Duration()
-	ibswinfoMaxConcurrent = kingpin.Flag("ibswinfo.max-concurrent", "Max number of concurrent ibswinfo executions").Default("1").Int()
-	IbswinfoExec          = ibswinfo
+	CollectIbswinfo         = kingpin.Flag("collector.ibswinfo", "Enable ibswinfo data collection (BETA)").Default("false").Bool()
+	ibswinfoPath            = kingpin.Flag("ibswinfo.path", "Path to ibswinfo").Default("ibswinfo").String()
+	ibswinfoTimeout         = kingpin.Flag("ibswinfo.timeout", "Timeout for ibswinfo execution").Default("10s").Duration()
+	ibswinfoMaxConcurrent   = kingpin.Flag("ibswinfo.max-concurrent", "Max number of concurrent ibswinfo executions").Default("1").Int()
+	ibswinfoExcludeNodeName = kingpin.Flag("ibswinfo.exclude-node-name", "Comma delimited list of node names to exclude").Default("").String()
+	IbswinfoExec            = ibswinfo
 )
 
 type IbswinfoCollector struct {
@@ -187,9 +189,14 @@ func (s *IbswinfoCollector) collect() ([]Ibswinfo, float64, float64) {
 	var ibswinfosLock sync.Mutex
 	var errors, timeouts float64
 	limit := make(chan int, *ibswinfoMaxConcurrent)
+	excludeNodeNodes := strings.Split(*ibswinfoExcludeNodeName, ",")
 	wg := &sync.WaitGroup{}
 	level.Debug(s.logger).Log("msg", "Collecting ibswinfo on devices", "count", len(*s.devices))
 	for _, device := range *s.devices {
+		if slices.Contains(excludeNodeNodes, device.Name) {
+			level.Debug(s.logger).Log("msg", "Skip excluded device", "name", device.Name)
+			continue
+		}
 		limit <- 1
 		wg.Add(1)
 		go func(device InfinibandDevice) {
